@@ -34,3 +34,55 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Cloudflare PDF Reader Setup
+
+The document reader loads PDFs directly from the Cloudflare R2 custom domains.
+Inline reading must keep the normal PDF URLs unchanged. Direct downloads use
+the same URL with `?download=1`, so Cloudflare needs a Response Header
+Transform Rule only for those download requests:
+
+```txt
+(
+  http.host in {
+    "books.sabeelalrashad.com"
+    "articles.sabeelalrashad.com"
+  }
+  and http.request.uri.query contains "download=1"
+)
+```
+
+Set this response header for matching requests:
+
+```txt
+Content-Disposition: attachment
+```
+
+Do not set `Content-Disposition: attachment` on every PDF response, because
+normal PDF URLs must remain inline for the reader.
+
+PDF.js also requires CORS on both R2 buckets, `sabeel-alrashad-books` and
+`sabeel-alrashad-articles`:
+
+```json
+[
+  {
+    "AllowedOrigins": [
+      "https://sabeelalrashad.com",
+      "https://www.sabeelalrashad.com",
+      "http://localhost:3000",
+      "http://192.168.33.44:3000",
+      "http://192.168.1.28:3000"
+    ],
+    "AllowedMethods": ["GET", "HEAD"],
+    "AllowedHeaders": ["Range"],
+    "ExposeHeaders": [
+      "Accept-Ranges",
+      "Content-Length",
+      "Content-Range",
+      "ETag"
+    ],
+    "MaxAgeSeconds": 86400
+  }
+]
+```
