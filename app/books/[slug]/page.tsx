@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BookPlaylist } from "@/components/book-playlist";
 import { books } from "@/data/library";
+import { createPageMetadata } from "@/lib/site";
 
 type BookPageProps = {
   params: Promise<{ slug: string }>;
@@ -18,6 +20,23 @@ export function generateStaticParams() {
     .map((book) => ({
       slug: book.slug,
     }));
+}
+
+export async function generateMetadata({
+  params,
+}: BookPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const book = books.find((item) => item.slug === slug);
+
+  if (!book) return {};
+
+  return createPageMetadata({
+    title: book.title,
+    description:
+      book.description ??
+      `استمع إلى سلسلة ${book.title} بشرح ${book.explainerName} في سبيل الرشاد.`,
+    path: `/books/${book.slug}`,
+  });
 }
 
 export default async function BookPage({

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { BookCard } from "@/components/book-card";
 import { LibraryItemCard } from "@/components/library-item-card";
@@ -8,6 +9,7 @@ import {
 import { books, sheikhs } from "@/data/library";
 import { sortBooksByRecent } from "@/lib/library";
 import { filterLibraryItems } from "@/lib/library-items";
+import { createPageMetadata } from "@/lib/site";
 
 type TeacherPageProps = {
   params: Promise<{ slug: string }>;
@@ -17,6 +19,27 @@ export function generateStaticParams() {
   return sheikhs.map((sheikh) => ({
     slug: sheikh.slug,
   }));
+}
+
+export async function generateMetadata({
+  params,
+}: TeacherPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const canonicalSlug =
+    slug === "saad-zaatari"
+      ? "saad-al-zaatari"
+      : slug === "asad-zaatari"
+        ? "asaad-al-zaatari"
+        : slug;
+  const sheikh = sheikhs.find((item) => item.slug === canonicalSlug);
+
+  if (!sheikh) return {};
+
+  return createPageMetadata({
+    title: sheikh.name,
+    description: `${sheikh.bio} تصفح الدروس والسلاسل الصوتية والكتب والمقالات في سبيل الرشاد.`,
+    path: `/teachers/${sheikh.slug}`,
+  });
 }
 
 export default async function TeacherPage({ params }: TeacherPageProps) {

@@ -2,6 +2,19 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { RecordingCoursePlayer } from "@/components/recording-course-player";
 import { books } from "@/data/library";
+import { createPageMetadata } from "@/lib/site";
+
+const tadmuriyyah = books.find(
+  (item) => item.slug === "al-fatwa-al-tadmuriyyah",
+);
+
+export const metadata = createPageMetadata({
+  title: tadmuriyyah?.title ?? "الفتوى التدمرية",
+  description:
+    tadmuriyyah?.description ??
+    "دروس صوتية في شرح الفتوى التدمرية، متاحة للاستماع في سبيل الرشاد.",
+  path: "/books/al-fatwa-al-tadmuriyyah",
+});
 
 type TadmuriyyahPageProps = {
   searchParams: Promise<{ lesson?: string }>;
@@ -11,7 +24,7 @@ export default async function TadmuriyyahPage({
   searchParams,
 }: TadmuriyyahPageProps) {
   const { lesson } = await searchParams;
-  const book = books.find((item) => item.slug === "al-fatwa-al-tadmuriyyah");
+  const book = tadmuriyyah;
 
   if (!book) return notFound();
 

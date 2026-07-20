@@ -606,12 +606,12 @@ export function RecordingCoursePlayer({
               <div className="grid grid-cols-[auto_auto_auto] items-center gap-3 sm:gap-5">
                 <button
                   type="button"
-                  onClick={skipBackward}
-                  aria-label="رجوع 10 ثوانٍ"
+                  onClick={skipForward}
+                  aria-label="تقديم 10 ثوانٍ"
                   className="inline-flex h-12 min-w-14 items-center justify-center gap-1 rounded-full border border-white/25 bg-black/45 px-3 text-sm font-bold text-white shadow-lg backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-14 sm:min-w-16"
                 >
-                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
                   <span>10</span>
+                  <RotateCw className="h-4 w-4" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
@@ -627,12 +627,12 @@ export function RecordingCoursePlayer({
                 </button>
                 <button
                   type="button"
-                  onClick={skipForward}
-                  aria-label="تقديم 10 ثوانٍ"
+                  onClick={skipBackward}
+                  aria-label="رجوع 10 ثوانٍ"
                   className="inline-flex h-12 min-w-14 items-center justify-center gap-1 rounded-full border border-white/25 bg-black/45 px-3 text-sm font-bold text-white shadow-lg backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-14 sm:min-w-16"
                 >
+                  <RotateCcw className="h-4 w-4" aria-hidden="true" />
                   <span>10</span>
-                  <RotateCw className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             </div>

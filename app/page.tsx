@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -16,6 +17,34 @@ import {
   getLibraryItemHref,
 } from "@/lib/library-items";
 import { getRecentlyAddedBooks } from "@/lib/library";
+import {
+  SITE_ALTERNATE_NAME,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+} from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: { absolute: SITE_NAME },
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: SITE_URL },
+  openGraph: {
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    locale: "ar_PS",
+    type: "website",
+  },
+};
+
+const websiteStructuredData = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  alternateName: SITE_ALTERNATE_NAME,
+  url: SITE_URL,
+};
 
 function SectionHeader({
   id,
@@ -70,6 +99,12 @@ export default function HomePage() {
 
   return (
     <main className="bg-[#fdfbf7]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(websiteStructuredData).replace(/</g, "\\u003c"),
+        }}
+      />
       <section className="border-b border-stone-200/80">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
@@ -78,7 +113,10 @@ export default function HomePage() {
             </div>
 
             <h1 className="mt-7 text-3xl font-extrabold leading-relaxed tracking-tight text-gray-800 sm:text-4xl">
-              مواد علمية مختارة من دروس المشايخ وكتبهم ومقالاتهم.
+              {SITE_NAME}
+              <span className="mt-2 block text-xl font-bold sm:text-2xl">
+                مواد علمية مختارة من دروس المشايخ وكتبهم ومقالاتهم.
+              </span>
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base font-normal leading-relaxed text-gray-600 sm:text-lg">
               للاستماع والقراءة والتحميل.

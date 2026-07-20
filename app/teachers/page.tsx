@@ -1,5 +1,13 @@
 import { TeacherCard } from "@/components/teacher-card";
 import { sheikhs } from "@/data/library";
+import { createPageMetadata } from "@/lib/site";
+
+export const metadata = createPageMetadata({
+  title: "الشيوخ",
+  description:
+    "تصفح صفحات الشيوخ ودروسهم وسلاسلهم الصوتية وكتبهم ومقالاتهم في سبيل الرشاد.",
+  path: "/teachers",
+});
 
 export default function TeachersPage() {
   return (

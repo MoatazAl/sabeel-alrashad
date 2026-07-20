@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PdfReader } from "@/components/pdf-reader";
 import {
@@ -5,6 +6,7 @@ import {
   itemTypeToRouteType,
   libraryItems,
 } from "@/lib/library-items";
+import { createPageMetadata } from "@/lib/site";
 
 type LibraryItemPageProps = {
   params: Promise<{
@@ -18,6 +20,23 @@ export function generateStaticParams() {
     type: itemTypeToRouteType(item.type),
     slug: item.slug,
   }));
+}
+
+export async function generateMetadata({
+  params,
+}: LibraryItemPageProps): Promise<Metadata> {
+  const { type, slug } = await params;
+  const item = getLibraryItem(type, slug);
+
+  if (!item) return {};
+
+  const itemLabel = item.type === "book" ? "كتاب" : "مقال أو رسالة";
+
+  return createPageMetadata({
+    title: item.title,
+    description: `${itemLabel} ${item.title} للمؤلف ${item.authorName}، متاح للقراءة في مكتبة سبيل الرشاد.`,
+    path: `/library/${itemTypeToRouteType(item.type)}/${item.slug}`,
+  });
 }
 
 export default async function LibraryItemPage({ params }: LibraryItemPageProps) {

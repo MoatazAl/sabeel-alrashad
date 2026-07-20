@@ -4,17 +4,21 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run verify:pdfjs",
     "build": "next build",
     "generate:sahih-posters": "node scripts/generate-sahih-al-bukhari-posters.mjs",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "verify:pdfjs": "node scripts/verify-pdfjs-assets.mjs",
+    "verify:r2-pdfs": "node scripts/verify-r2-pdfs.mjs"
   },
   "dependencies": {
     "@fontsource/cairo": "^5.2.7",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.8.0",
     "next": "16.2.4",
+    "pdfjs-dist": "5.7.284",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },

@@ -114,8 +114,24 @@ textarea {
   background: #171717;
 }
 
-.pdf-reader-root:fullscreen .pdf-reader-frame {
+.pdf-reader-root:fullscreen .pdf-reader-viewport,
+.pdf-reader-fallback-fullscreen .pdf-reader-viewport {
   width: 100%;
   height: calc(100vh - 3rem);
+  height: calc(100dvh - 3rem);
   min-height: 0;
+}
+
+.pdf-reader-fallback-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: #171717;
 }

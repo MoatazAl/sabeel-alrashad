@@ -8,6 +8,14 @@ import {
   type LibraryRouteType,
   routeTypeToItemType,
 } from "@/lib/library-items";
+import { createPageMetadata } from "@/lib/site";
+
+export const metadata = createPageMetadata({
+  title: "المكتبة",
+  description:
+    "مكتبة سبيل الرشاد للكتب والمقالات والرسائل العلمية الشرعية، متاحة للقراءة والتصفح.",
+  path: "/library",
+});
 
 type LibraryPageProps = {
   searchParams: Promise<{

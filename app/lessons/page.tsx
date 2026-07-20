@@ -2,6 +2,14 @@ import { BookCard } from "@/components/book-card";
 import { SearchBar } from "@/components/search-bar";
 import { books } from "@/data/library";
 import { filterBooks } from "@/lib/library";
+import { createPageMetadata } from "@/lib/site";
+
+export const metadata = createPageMetadata({
+  title: "السلاسل العلمية والدروس",
+  description:
+    "تصفح السلاسل العلمية والدروس الإسلامية والدورات الصوتية المرتبة حسب الشيخ والتصنيف في سبيل الرشاد.",
+  path: "/lessons",
+});
 
 type LessonsPageProps = {
   searchParams: Promise<{ q?: string }>;

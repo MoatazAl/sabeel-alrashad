@@ -2,6 +2,17 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { RecordingCoursePlayer } from "@/components/recording-course-player";
 import { books } from "@/data/library";
+import { createPageMetadata } from "@/lib/site";
+
+const nukhbatAlFikar = books.find((item) => item.slug === "nukhbat-al-fikar");
+
+export const metadata = createPageMetadata({
+  title: nukhbatAlFikar?.title ?? "نخبة الفكر",
+  description:
+    nukhbatAlFikar?.description ??
+    "دروس صوتية في شرح نخبة الفكر، متاحة للاستماع في سبيل الرشاد.",
+  path: "/books/nukhbat-al-fikar",
+});
 
 type NukhbatAlFikarPageProps = {
   searchParams: Promise<{ lesson?: string }>;
@@ -11,7 +22,7 @@ export default async function NukhbatAlFikarPage({
   searchParams,
 }: NukhbatAlFikarPageProps) {
   const { lesson } = await searchParams;
-  const book = books.find((item) => item.slug === "nukhbat-al-fikar");
+  const book = nukhbatAlFikar;
 
   if (!book) return notFound();
 

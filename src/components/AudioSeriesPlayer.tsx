@@ -453,10 +453,10 @@ export function AudioSeriesPlayer({
         <div className="absolute inset-0 flex items-center justify-center">
           {renderArtworkPlayButton(isTheater, false)}
           <div className="absolute right-[calc(50%+3.8rem)] top-1/2 -translate-y-1/2 sm:right-[calc(50%+5.25rem)]">
-            {renderSkipButton("back", true)}
+            {renderSkipButton("forward", true)}
           </div>
           <div className="absolute left-[calc(50%+3.8rem)] top-1/2 -translate-y-1/2 sm:left-[calc(50%+5.25rem)]">
-            {renderSkipButton("forward", true)}
+            {renderSkipButton("back", true)}
           </div>
         </div>
 
@@ -644,4 +644,3 @@ export function AudioSeriesPlayer({
     </>
   );
 }
-

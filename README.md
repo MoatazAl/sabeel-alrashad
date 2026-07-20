@@ -35,9 +35,14 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Cloudflare PDF Reader Setup
+## PDF.js and Cloudflare R2 setup
 
-The document reader loads PDFs directly from the Cloudflare R2 custom domains.
+The document reader self-hosts Mozilla's official generic PDF.js viewer under
+`/pdfjs/web/viewer.html` and loads PDFs directly from the Cloudflare R2 custom
+domains. The `pdfjs-dist` dependency is pinned exactly, and `npm run build`
+checks that the public API, sandbox, and worker files are byte-for-byte matches
+for that installed version.
+
 Inline reading must keep the normal PDF URLs unchanged. Direct downloads use
 the same URL with `?download=1`, so Cloudflare needs a Response Header
 Transform Rule only for those download requests:
@@ -58,8 +63,30 @@ Set this response header for matching requests:
 Content-Disposition: attachment
 ```
 
-Do not set `Content-Disposition: attachment` on every PDF response, because
-normal PDF URLs must remain inline for the reader.
+Every stored PDF must use this object metadata on its normal URL:
+
+```txt
+Content-Type: application/pdf
+Content-Disposition: inline
+```
+
+Do not set `Content-Disposition: attachment` on every PDF response. Only the
+`?download=1` transform shown above should replace `inline` with `attachment`.
+If the existing objects do not have this metadata, add a normal-PDF Response
+Header Transform Rule before the download rule:
+
+```txt
+(
+  http.host in {
+    "books.sabeelalrashad.com"
+    "articles.sabeelalrashad.com"
+  }
+  and ends_with(http.request.uri.path, ".pdf")
+  and not http.request.uri.query contains "download=1"
+)
+```
+
+Set `Content-Type` to `application/pdf` and `Content-Disposition` to `inline`.
 
 PDF.js also requires CORS on both R2 buckets, `sabeel-alrashad-books` and
 `sabeel-alrashad-articles`:
@@ -71,6 +98,7 @@ PDF.js also requires CORS on both R2 buckets, `sabeel-alrashad-books` and
       "https://sabeelalrashad.com",
       "https://www.sabeelalrashad.com",
       "http://localhost:3000",
+      "http://127.0.0.1:3000",
       "http://192.168.33.44:3000",
       "http://192.168.1.28:3000"
     ],
@@ -86,3 +114,19 @@ PDF.js also requires CORS on both R2 buckets, `sabeel-alrashad-books` and
   }
 ]
 ```
+
+The same policy is available in Wrangler's current schema at
+`cloudflare/r2-cors.json`. Apply it to both buckets with an authenticated
+Wrangler session:
+
+```bash
+npx wrangler r2 bucket cors set sabeel-alrashad-books --file cloudflare/r2-cors.json
+npx wrangler r2 bucket cors set sabeel-alrashad-articles --file cloudflare/r2-cors.json
+```
+
+Purge cached files for both custom hostnames after changing CORS or response
+headers so old responses without the new headers are not retained.
+
+Run `npm run verify:r2-pdfs` to check both production origins, both methods,
+the Range request header, exposed range headers, and the response metadata of
+every PDF listed in `data/library-items.ts`.
