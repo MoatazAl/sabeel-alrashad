@@ -35,12 +35,15 @@ export function getCourseImage(book: Book) {
 }
 
 export function createCourseMetadata(book: Book): Metadata {
-  return createPageMetadata({
-    title: `${book.title} | ${withoutHonorific(book.explainerName)}`,
-    description: getCourseDescription(book),
-    path: `/books/${book.slug}`,
-    image: getCourseImage(book),
-  });
+  return {
+    ...createPageMetadata({
+      title: `${book.title} | ${withoutHonorific(book.explainerName)}`,
+      description: getCourseDescription(book),
+      path: `/books/${book.slug}`,
+      image: getCourseImage(book),
+    }),
+    authors: [{ name: book.authorName }],
+  };
 }
 
 export function createCourseJsonLd(book: Book) {
@@ -61,6 +64,10 @@ export function createCourseJsonLd(book: Book) {
       "@type": "Person",
       name: withoutHonorific(book.explainerName),
       url: absoluteUrl(`/teachers/${book.explainerSlug}`),
+    },
+    author: {
+      "@type": "Person",
+      name: book.authorName,
     },
   };
 }

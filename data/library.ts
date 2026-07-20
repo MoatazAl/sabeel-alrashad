@@ -906,7 +906,7 @@ const rawBooks: BookSource[] = [
     explainerSlug: "raed-mahdawi",
     category: "السياسة الشرعية",
     title: "القراءة والتعليق على كتاب وبل الغمام على مسألة تعدد الحكام وحكم طاعة الإمام",
-    authorName: "غير مذكور",
+    authorName: raedMahdawiExplainerName,
     explainerName: raedMahdawiExplainerName,
     cover: raedCourseCoverImages.wabilAlGhamam,
     coverImage: raedCourseCoverImages.wabilAlGhamam,
