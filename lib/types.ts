@@ -19,6 +19,11 @@ export type Lesson = {
   section?: string;
 };
 
+export type BookSeriesGroup = {
+  slug: string;
+  title: string;
+};
+
 export type Book = {
   slug: string;
   title: string;
@@ -40,4 +45,5 @@ export type Book = {
   imageFit?: "cover" | "contain";
   imagePosition?: string;
   coverFrame?: "dark";
+  seriesGroup?: BookSeriesGroup;
 };

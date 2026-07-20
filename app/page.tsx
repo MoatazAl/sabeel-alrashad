@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { BookCard } from "@/components/book-card";
 import { DocumentCover } from "@/components/document-cover";
+import { JsonLd } from "@/components/json-ld";
 import { SearchBar } from "@/components/search-bar";
 import { TeacherCard } from "@/components/teacher-card";
 import { sheikhs } from "@/data/library";
@@ -19,9 +20,11 @@ import {
 import { getRecentlyAddedBooks } from "@/lib/library";
 import {
   SITE_ALTERNATE_NAME,
+  DEFAULT_OPEN_GRAPH_IMAGE,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_URL,
+  absoluteUrl,
 } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -35,6 +38,12 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     locale: "ar_PS",
     type: "website",
+    images: [
+      {
+        url: absoluteUrl(DEFAULT_OPEN_GRAPH_IMAGE),
+        alt: SITE_NAME,
+      },
+    ],
   },
 };
 
@@ -99,12 +108,7 @@ export default function HomePage() {
 
   return (
     <main className="bg-[#fdfbf7]">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(websiteStructuredData).replace(/</g, "\\u003c"),
-        }}
-      />
+      <JsonLd data={websiteStructuredData} />
       <section className="border-b border-stone-200/80">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">

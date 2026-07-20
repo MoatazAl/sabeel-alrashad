@@ -1,11 +1,11 @@
-import { BookCard } from "@/components/book-card";
+import { BookSeriesCollection } from "@/components/book-series-collection";
 import { SearchBar } from "@/components/search-bar";
 import { books } from "@/data/library";
 import { filterBooks } from "@/lib/library";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
-  title: "السلاسل العلمية والدروس",
+  title: "السلاسل العلمية",
   description:
     "تصفح السلاسل العلمية والدروس الإسلامية والدورات الصوتية المرتبة حسب الشيخ والتصنيف في سبيل الرشاد.",
   path: "/lessons",
@@ -47,11 +47,7 @@ export default async function LessonsPage({ searchParams }: LessonsPageProps) {
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         {playlists.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {playlists.map((book) => (
-              <BookCard key={book.slug} book={book} />
-            ))}
-          </div>
+          <BookSeriesCollection books={playlists} />
         ) : (
           <div className="rounded-xl border border-dashed border-stone-300 bg-white p-12 text-center">
             <h2 className="text-2xl font-bold text-stone-900">

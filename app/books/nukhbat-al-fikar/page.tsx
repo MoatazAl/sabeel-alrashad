@@ -1,18 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { JsonLd } from "@/components/json-ld";
 import { RecordingCoursePlayer } from "@/components/recording-course-player";
 import { books } from "@/data/library";
-import { createPageMetadata } from "@/lib/site";
+import { createCourseJsonLd, createCourseMetadata } from "@/lib/seo";
 
 const nukhbatAlFikar = books.find((item) => item.slug === "nukhbat-al-fikar");
 
-export const metadata = createPageMetadata({
-  title: nukhbatAlFikar?.title ?? "نخبة الفكر",
-  description:
-    nukhbatAlFikar?.description ??
-    "دروس صوتية في شرح نخبة الفكر، متاحة للاستماع في سبيل الرشاد.",
-  path: "/books/nukhbat-al-fikar",
-});
+export const metadata = nukhbatAlFikar
+  ? createCourseMetadata(nukhbatAlFikar)
+  : {};
 
 type NukhbatAlFikarPageProps = {
   searchParams: Promise<{ lesson?: string }>;
@@ -28,6 +25,7 @@ export default async function NukhbatAlFikarPage({
 
   return (
     <main dir="rtl">
+      <JsonLd data={createCourseJsonLd(book)} />
       <section className="border-b border-stone-200 bg-[#fbfaf7]">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
           <div>
@@ -39,9 +37,9 @@ export default async function NukhbatAlFikarPage({
                 {book.lessonsCount} درسا
               </span>
             </div>
-            <h1 className="mt-4 text-4xl font-bold leading-tight text-stone-950 md:text-5xl">
+            <p className="mt-4 text-4xl font-bold leading-tight text-stone-950 md:text-5xl">
               {book.title}
-            </h1>
+            </p>
             <p className="mt-4 text-xl font-semibold text-stone-700">
               {book.explainerName}
             </p>

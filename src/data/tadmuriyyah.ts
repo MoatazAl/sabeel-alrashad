@@ -60,7 +60,7 @@ export const tadmuriyyahBook = {
     return {
       number: lessonNumber,
       title,
-      audioUrl: `${MEDIA_BASE_URL}/al-fatwa-al-tadmuriyyah/${fileNumber}.${extension}`,
+      audioUrl: `${MEDIA_BASE_URL}/asaad-al-zaatari/al-fatwa-al-tadmuriyyah/${fileNumber}.${extension}`,
       coverImage: `/images/courses/tadmuriyyah/${fileNumber}.png`,
       startAt: lessonNumber === 1 ? 15 : 0,
     };

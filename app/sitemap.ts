@@ -44,5 +44,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...coursePages, ...teacherPages, ...libraryPages];
+  const pages = [
+    ...staticPages,
+    ...coursePages,
+    ...teacherPages,
+    ...libraryPages,
+  ];
+
+  return [...new Map(pages.map((page) => [page.url, page])).values()];
 }

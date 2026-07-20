@@ -1,20 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { JsonLd } from "@/components/json-ld";
 import { RecordingCoursePlayer } from "@/components/recording-course-player";
 import { books } from "@/data/library";
-import { createPageMetadata } from "@/lib/site";
+import { createCourseJsonLd, createCourseMetadata } from "@/lib/seo";
 
 const tadmuriyyah = books.find(
   (item) => item.slug === "al-fatwa-al-tadmuriyyah",
 );
 
-export const metadata = createPageMetadata({
-  title: tadmuriyyah?.title ?? "الفتوى التدمرية",
-  description:
-    tadmuriyyah?.description ??
-    "دروس صوتية في شرح الفتوى التدمرية، متاحة للاستماع في سبيل الرشاد.",
-  path: "/books/al-fatwa-al-tadmuriyyah",
-});
+export const metadata = tadmuriyyah ? createCourseMetadata(tadmuriyyah) : {};
 
 type TadmuriyyahPageProps = {
   searchParams: Promise<{ lesson?: string }>;
@@ -30,6 +25,7 @@ export default async function TadmuriyyahPage({
 
   return (
     <main dir="rtl" className="book-page">
+      <JsonLd data={createCourseJsonLd(book)} />
       <section className="border-b border-[#e2d4b9] bg-[#fbf4e6]/80">
         <div className="mx-auto max-w-[1220px] px-4 py-10 sm:px-6 lg:py-12">
           <div>
@@ -41,9 +37,9 @@ export default async function TadmuriyyahPage({
                 {book.lessonsCount} درسا
               </span>
             </div>
-            <h1 className="mt-4 text-4xl font-black leading-tight text-emerald-950 md:text-5xl">
+            <p className="mt-4 text-4xl font-black leading-tight text-emerald-950 md:text-5xl">
               {book.title}
-            </h1>
+            </p>
             <p className="mt-3 text-xl font-bold text-stone-800">
               {book.explainerName}
             </p>

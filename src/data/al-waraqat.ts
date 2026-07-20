@@ -1,5 +1,5 @@
 export const MEDIA_BASE_URL = "https://media.sabeelalrashad.com";
-const AUDIO_PATH = `${MEDIA_BASE_URL}/al-waraqat/al-waraqat`;
+const AUDIO_PATH = `${MEDIA_BASE_URL}/asaad-al-zaatari/al-waraqat`;
 
 const titles = [
   "الدرس الأول",

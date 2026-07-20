@@ -30,7 +30,7 @@ export const nukhbatAlFikarBook = {
     return {
       number: lessonNumber,
       title,
-      audioUrl: `${MEDIA_BASE_URL}/nukhbat-al-fikar/${fileNumber}.mp3`,
+      audioUrl: `${MEDIA_BASE_URL}/asaad-al-zaatari/nukhbat-al-fikar/${fileNumber}.mp3`,
       coverImage: `/images/courses/nukhbat-al-fikar/${fileNumber}.png`,
       startAt: 0,
     };

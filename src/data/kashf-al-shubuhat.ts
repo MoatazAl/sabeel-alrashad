@@ -1,5 +1,5 @@
 export const MEDIA_BASE_URL = "https://media.sabeelalrashad.com";
-const AUDIO_PATH = `${MEDIA_BASE_URL}/kashf-al-shubuhat/kashf-al-shubuhat`;
+const AUDIO_PATH = `${MEDIA_BASE_URL}/asaad-al-zaatari/kashf-al-shubuhat`;
 
 const titles = [
   "الدرس الأول",

@@ -4,7 +4,10 @@ import { kashfAlShubuhatBook } from "../src/data/kashf-al-shubuhat";
 import { mukhtasarAlSeerahBook } from "../src/data/mukhtasar-al-seerah";
 import { nukhbatAlFikarBook } from "../src/data/nukhbat-al-fikar";
 import { sahihAlBukhariBook } from "../src/data/sahih-al-bukhari";
+import { sharhAlSunnahAlBarbahariBook } from "../src/data/sharh-al-sunnah-al-barbahari";
 import { tadmuriyyahBook } from "../src/data/tadmuriyyah";
+import { umdatAlAhkamKitabAlSalahBook } from "../src/data/umdat-al-ahkam-kitab-al-salah";
+import { umdatAlAhkamKitabAlTaharahBook } from "../src/data/umdat-al-ahkam-kitab-al-taharah";
 
 export const sheikhs: Sheikh[] = [
   {
@@ -15,7 +18,7 @@ export const sheikhs: Sheikh[] = [
   },
   {
     slug: "saad-al-zaatari",
-    name: "الشيخ سعد الزعتري",
+    name: "الشيخ سعد بن فتحي الزعتري",
     bio: "دروس وشروح في الحديث والفقه والتفسير.",
   },
   {
@@ -55,6 +58,10 @@ const raedCourseCoverImages = {
     "/images/courses/al-irhab-wa-atharuh-as-sayyi-ah/000.png",
   wabilAlGhamam: "/images/courses/wabil-al-ghamam/000.png",
   alUsulAsSittah: "/images/courses/al-usul-as-sittah/000.png",
+} as const;
+const umdatAlAhkamSeriesGroup = {
+  slug: "umdat-al-ahkam",
+  title: "شرح عمدة الأحكام",
 } as const;
 
 const rawBooks: BookSource[] = [
@@ -203,6 +210,110 @@ const rawBooks: BookSource[] = [
       number: lesson.number,
       title: lesson.title,
       section: lesson.section,
+      audioUrl: lesson.audioUrl,
+      image: lesson.image,
+      coverImage: lesson.coverImage,
+      startAt: lesson.startAt,
+    })),
+  },
+  {
+    slug: sharhAlSunnahAlBarbahariBook.slug,
+    explainerSlug: sharhAlSunnahAlBarbahariBook.sheikhSlug,
+    sheikhSlug: sharhAlSunnahAlBarbahariBook.sheikhSlug,
+    category: sharhAlSunnahAlBarbahariBook.category,
+    status: "completed",
+    updatedAt: "2026-07-20",
+    type: "audio",
+    source: "r2",
+    title: sharhAlSunnahAlBarbahariBook.title,
+    authorName: sharhAlSunnahAlBarbahariBook.author,
+    explainerName: sharhAlSunnahAlBarbahariBook.sheikh,
+    description: sharhAlSunnahAlBarbahariBook.description,
+    cover: sharhAlSunnahAlBarbahariBook.cover,
+    coverImage: sharhAlSunnahAlBarbahariBook.coverImage,
+    imageFit: "contain",
+    searchKeywords: [
+      "السنة للبربهاري",
+      "شرح السنة",
+      "البربهاري",
+      "الحسن بن علي البربهاري",
+      "سعد الزعتري",
+      "سعد بن فتحي الزعتري",
+    ],
+    lessons: sharhAlSunnahAlBarbahariBook.lessons.map((lesson) => ({
+      id: `sharh-al-sunnah-al-barbahari-${lesson.number}`,
+      number: lesson.number,
+      title: lesson.title,
+      audioUrl: lesson.audioUrl,
+      image: lesson.image,
+      coverImage: lesson.coverImage,
+      startAt: lesson.startAt,
+    })),
+  },
+  {
+    slug: umdatAlAhkamKitabAlTaharahBook.slug,
+    explainerSlug: umdatAlAhkamKitabAlTaharahBook.sheikhSlug,
+    sheikhSlug: umdatAlAhkamKitabAlTaharahBook.sheikhSlug,
+    category: umdatAlAhkamKitabAlTaharahBook.category,
+    status: "completed",
+    updatedAt: "2026-07-20",
+    type: "audio",
+    source: "r2",
+    title: umdatAlAhkamKitabAlTaharahBook.title,
+    authorName: umdatAlAhkamKitabAlTaharahBook.author,
+    explainerName: umdatAlAhkamKitabAlTaharahBook.sheikh,
+    description: umdatAlAhkamKitabAlTaharahBook.description,
+    cover: umdatAlAhkamKitabAlTaharahBook.cover,
+    coverImage: umdatAlAhkamKitabAlTaharahBook.coverImage,
+    imageFit: "contain",
+    seriesGroup: umdatAlAhkamSeriesGroup,
+    searchKeywords: [
+      "عمدة الأحكام",
+      "شرح عمدة الأحكام",
+      "كتاب الطهارة",
+      "عبد الغني المقدسي",
+      "سعد الزعتري",
+      "سعد بن فتحي الزعتري",
+    ],
+    lessons: umdatAlAhkamKitabAlTaharahBook.lessons.map((lesson) => ({
+      id: `umdat-al-ahkam-kitab-al-taharah-${lesson.number}`,
+      number: lesson.number,
+      title: lesson.title,
+      audioUrl: lesson.audioUrl,
+      image: lesson.image,
+      coverImage: lesson.coverImage,
+      startAt: lesson.startAt,
+    })),
+  },
+  {
+    slug: umdatAlAhkamKitabAlSalahBook.slug,
+    explainerSlug: umdatAlAhkamKitabAlSalahBook.sheikhSlug,
+    sheikhSlug: umdatAlAhkamKitabAlSalahBook.sheikhSlug,
+    category: umdatAlAhkamKitabAlSalahBook.category,
+    status: "completed",
+    updatedAt: "2026-07-20",
+    type: "audio",
+    source: "r2",
+    title: umdatAlAhkamKitabAlSalahBook.title,
+    authorName: umdatAlAhkamKitabAlSalahBook.author,
+    explainerName: umdatAlAhkamKitabAlSalahBook.sheikh,
+    description: umdatAlAhkamKitabAlSalahBook.description,
+    cover: umdatAlAhkamKitabAlSalahBook.cover,
+    coverImage: umdatAlAhkamKitabAlSalahBook.coverImage,
+    imageFit: "contain",
+    seriesGroup: umdatAlAhkamSeriesGroup,
+    searchKeywords: [
+      "عمدة الأحكام",
+      "شرح عمدة الأحكام",
+      "كتاب الصلاة",
+      "عبد الغني المقدسي",
+      "سعد الزعتري",
+      "سعد بن فتحي الزعتري",
+    ],
+    lessons: umdatAlAhkamKitabAlSalahBook.lessons.map((lesson) => ({
+      id: `umdat-al-ahkam-kitab-al-salah-${lesson.number}`,
+      number: lesson.number,
+      title: lesson.title,
       audioUrl: lesson.audioUrl,
       image: lesson.image,
       coverImage: lesson.coverImage,
@@ -515,12 +626,47 @@ const rawBooks: BookSource[] = [
     ],
   },
   {
+    slug: "saad-al-bayquniyyah",
+    explainerSlug: "saad-al-zaatari",
+    category: "مصطلح الحديث",
+    status: "completed",
+    title: "شرح المنظومة البيقونية",
+    authorName: "الإمام عمر بن محمد البيقوني",
+    explainerName: "الشيخ سعد بن فتحي الزعتري",
+    description:
+      "شرح المنظومة البيقونية في مصطلح الحديث، في أربعة دروس لفضيلة الشيخ سعد بن فتحي الزعتري.",
+    cover: "https://i.ytimg.com/vi/LgZUoSdzEA0/hqdefault.jpg",
+    coverImage: "https://i.ytimg.com/vi/LgZUoSdzEA0/hqdefault.jpg",
+    lessons: [
+      {
+        id: "bayquniyyah-1",
+        title: "الدرس الأول",
+        youtubeUrl: "https://www.youtube.com/watch?v=LgZUoSdzEA0",
+      },
+      {
+        id: "bayquniyyah-2",
+        title: "الدرس الثاني",
+        youtubeUrl: "https://www.youtube.com/watch?v=Fts1zPknKVE",
+      },
+      {
+        id: "bayquniyyah-3",
+        title: "الدرس الثالث",
+        youtubeUrl: "https://www.youtube.com/watch?v=2Nc6-qhRPIQ",
+      },
+      {
+        id: "bayquniyyah-4",
+        title: "الدرس الرابع",
+        youtubeUrl: "https://www.youtube.com/watch?v=EkWqjjpMm5E",
+      },
+    ],
+  },
+  {
     slug: "saad-riyad-saliheen",
     explainerSlug: "saad-al-zaatari",
     category: "الحديث",
     title: "شرح رياض الصالحين",
     authorName: "النووي",
-    explainerName: "فضيلة الشيخ سعد الزعتري",
+    explainerName: "الشيخ سعد بن فتحي الزعتري",
     cover: "/images/courses/saad-riyad-saliheen/000.png",
     coverImage: "/images/courses/saad-riyad-saliheen/000.png",
     status: "completed",

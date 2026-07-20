@@ -49,6 +49,37 @@ export function sortBooksByRecent(items: Book[]) {
   });
 }
 
+export function organizeBooksBySeries(items: Book[]) {
+  const series = new Map<
+    string,
+    { slug: string; title: string; books: Book[] }
+  >();
+  const standaloneBooks: Book[] = [];
+
+  for (const book of items) {
+    if (!book.seriesGroup) {
+      standaloneBooks.push(book);
+      continue;
+    }
+
+    const existingSeries = series.get(book.seriesGroup.slug);
+    if (existingSeries) {
+      existingSeries.books.push(book);
+      continue;
+    }
+
+    series.set(book.seriesGroup.slug, {
+      ...book.seriesGroup,
+      books: [book],
+    });
+  }
+
+  return {
+    seriesGroups: [...series.values()],
+    standaloneBooks,
+  };
+}
+
 export function getRecentlyAddedBooks(limit = 6) {
   return sortBooksByRecent(books).slice(0, limit);
 }

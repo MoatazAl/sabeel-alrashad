@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { BookCard } from "@/components/book-card";
 import { BookPlaylist } from "@/components/book-playlist";
+import { JsonLd } from "@/components/json-ld";
 import { books } from "@/data/library";
-import { createPageMetadata } from "@/lib/site";
+import { sortBooksByRecent } from "@/lib/library";
+import { createCourseJsonLd, createCourseMetadata } from "@/lib/seo";
 
 type BookPageProps = {
   params: Promise<{ slug: string }>;
@@ -30,13 +33,7 @@ export async function generateMetadata({
 
   if (!book) return {};
 
-  return createPageMetadata({
-    title: book.title,
-    description:
-      book.description ??
-      `استمع إلى سلسلة ${book.title} بشرح ${book.explainerName} في سبيل الرشاد.`,
-    path: `/books/${book.slug}`,
-  });
+  return createCourseMetadata(book);
 }
 
 export default async function BookPage({
@@ -49,8 +46,19 @@ export default async function BookPage({
 
   if (!book) return notFound();
 
+  const relatedCourses = book.seriesGroup
+    ? sortBooksByRecent(
+        books.filter(
+          (item) =>
+            item.slug !== book.slug &&
+            item.seriesGroup?.slug === book.seriesGroup?.slug,
+        ),
+      )
+    : [];
+
   return (
     <main>
+      <JsonLd data={createCourseJsonLd(book)} />
       <section className="border-b border-stone-200 bg-[#fbfaf7]">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
           <div className="flex flex-wrap gap-2 text-sm font-medium">
@@ -61,9 +69,9 @@ export default async function BookPage({
               {book.status === "ongoing" ? "سلسلة مستمرة" : "سلسلة مكتملة"}
             </span>
           </div>
-          <h1 className="mt-5 text-4xl font-bold leading-tight text-stone-950 md:text-5xl">
+          <p className="mt-5 text-4xl font-bold leading-tight text-stone-950 md:text-5xl">
             {book.title}
-          </h1>
+          </p>
           <p className="mt-4 text-lg leading-9 text-stone-600">
             الشارح: {book.explainerName} · المؤلف: {book.authorName}
           </p>
@@ -73,6 +81,21 @@ export default async function BookPage({
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <BookPlaylist book={book} initialLessonId={lesson} />
       </section>
+
+      {relatedCourses.length > 0 ? (
+        <section className="border-t border-stone-200 bg-[#fbfaf7]">
+          <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+            <h2 className="mb-6 text-2xl font-bold text-stone-950">
+              من {book.seriesGroup?.title}
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {relatedCourses.map((course) => (
+                <BookCard key={course.slug} book={course} />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

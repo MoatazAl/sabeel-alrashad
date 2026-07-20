@@ -24,6 +24,10 @@ const raedAuthor = {
   name: "فضيلة الشيخ رائد بن عبد الجبار المهداوي",
   slug: "raed-al-mahdawi",
 } as const;
+const saadAuthor = {
+  name: "فضيلة الشيخ سعد بن فتحي الزعتري",
+  slug: "saad-al-zaatari",
+} as const;
 
 function bookUrl(fileName: string) {
   return `${booksBaseUrl}/${raedAuthor.slug}/${fileName}`;
@@ -322,6 +326,66 @@ const articles: LibraryItem[] = [
     fileName: "man-hum-al-ulama.pdf",
     fileUrl: articleUrl("man-hum-al-ulama.pdf"),
   },
+  {
+    id: "saad-article-dirasat-al-muhaddith-al-fasil",
+    slug: "dirasat-al-muhaddith-al-fasil",
+    title: "دراسة حول كتاب المحدث الفاصل",
+    authorName: saadAuthor.name,
+    authorSlug: saadAuthor.slug,
+    type: "article",
+    fileName: "dirasat-al-muhaddith-al-fasil.pdf",
+    fileUrl: `${articlesBaseUrl}/${saadAuthor.slug}/dirasat-al-muhaddith-al-fasil.pdf`,
+  },
+  {
+    id: "saad-article-fadl-al-ilm-bil-quran",
+    slug: "fadl-al-ilm-bil-quran",
+    title: "فضل العلم بالقرآن",
+    authorName: saadAuthor.name,
+    authorSlug: saadAuthor.slug,
+    type: "article",
+    fileName: "fadl-al-ilm-bil-quran.pdf",
+    fileUrl: `${articlesBaseUrl}/${saadAuthor.slug}/fadl-al-ilm-bil-quran.pdf`,
+  },
+  {
+    id: "saad-article-mafhum-al-sunnah",
+    slug: "mafhum-al-sunnah",
+    title: "مفهوم السنة في الدعوة السلفية",
+    authorName: saadAuthor.name,
+    authorSlug: saadAuthor.slug,
+    type: "article",
+    fileName: "mafhum-al-sunnah.pdf",
+    fileUrl: `${articlesBaseUrl}/${saadAuthor.slug}/mafhum-al-sunnah.pdf`,
+  },
+  {
+    id: "saad-article-tahdhir-ahl-al-afaq",
+    slug: "tahdhir-ahl-al-afaq",
+    title: "تحذير أهل الآفاق من منهج الحويني أبي إسحاق",
+    authorName: saadAuthor.name,
+    authorSlug: saadAuthor.slug,
+    type: "article",
+    fileName: "tahdhir-ahl-al-afaq.pdf",
+    fileUrl: `${articlesBaseUrl}/${saadAuthor.slug}/tahdhir-ahl-al-afaq.pdf`,
+  },
+  {
+    id: "saad-article-takhil-uyun-al-salafiyyin",
+    slug: "takhil-uyun-al-salafiyyin",
+    title: "تكحيل عيون السلفيين",
+    authorName: saadAuthor.name,
+    authorSlug: saadAuthor.slug,
+    type: "article",
+    fileName: "takhil-uyun-al-salafiyyin.pdf",
+    fileUrl: `${articlesBaseUrl}/${saadAuthor.slug}/takhil-uyun-al-salafiyyin.pdf`,
+  },
+  {
+    id: "saad-article-takhrij-ma-yusib-al-mumin",
+    slug: "takhrij-ma-yusib-al-mumin",
+    title: "تخريج حديث «ما من شيء يصيب المؤمن…»",
+    authorName: saadAuthor.name,
+    authorSlug: saadAuthor.slug,
+    type: "article",
+    fileName: "takhrij-ma-yusib-al-mumin.pdf",
+    fileUrl: `${articlesBaseUrl}/${saadAuthor.slug}/takhrij-ma-yusib-al-mumin.pdf`,
+  },
 ];
 
 export const libraryItems = [...books, ...articles];
@@ -330,5 +394,9 @@ export const libraryAuthors = [
   {
     name: raedAuthor.name,
     slug: raedAuthor.slug,
+  },
+  {
+    name: saadAuthor.name,
+    slug: saadAuthor.slug,
   },
 ];

@@ -1,5 +1,5 @@
 export const MEDIA_BASE_URL = "https://media.sabeelalrashad.com";
-const AUDIO_PATH = `${MEDIA_BASE_URL}/mukhtasar-al-seerah/mukhtasar-al-seerah`;
+const AUDIO_PATH = `${MEDIA_BASE_URL}/asaad-al-zaatari/mukhtasar-al-seerah`;
 
 const lessons = [
   { title: "الدرس الأول", fileName: "001.m4a" },

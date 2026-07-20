@@ -37,7 +37,7 @@ export const sahihAlBukhariBook = {
       number: lessonNumber,
       title: `الدرس ${lessonNumber}`,
       section: getLessonSection(lessonNumber),
-      audioUrl: `${MEDIA_BASE_URL}/sahih-al-bukhari/${fileNumber}.${extension}`,
+      audioUrl: `${MEDIA_BASE_URL}/asaad-al-zaatari/sahih-al-bukhari/${fileNumber}.${extension}`,
       image: `/images/courses/sahih-al-bukhari/${fileNumber}.png`,
       coverImage: `/images/courses/sahih-al-bukhari/${fileNumber}.png`,
       startAt: 0,

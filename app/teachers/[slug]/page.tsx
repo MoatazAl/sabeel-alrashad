@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { BookCard } from "@/components/book-card";
+import { BookSeriesCollection } from "@/components/book-series-collection";
+import { JsonLd } from "@/components/json-ld";
 import { LibraryItemCard } from "@/components/library-item-card";
 import {
   TeacherProfileNavigation,
@@ -9,7 +10,7 @@ import {
 import { books, sheikhs } from "@/data/library";
 import { sortBooksByRecent } from "@/lib/library";
 import { filterLibraryItems } from "@/lib/library-items";
-import { createPageMetadata } from "@/lib/site";
+import { createPersonJsonLd, createTeacherMetadata } from "@/lib/seo";
 
 type TeacherPageProps = {
   params: Promise<{ slug: string }>;
@@ -35,11 +36,7 @@ export async function generateMetadata({
 
   if (!sheikh) return {};
 
-  return createPageMetadata({
-    title: sheikh.name,
-    description: `${sheikh.bio} تصفح الدروس والسلاسل الصوتية والكتب والمقالات في سبيل الرشاد.`,
-    path: `/teachers/${sheikh.slug}`,
-  });
+  return createTeacherMetadata(sheikh);
 }
 
 export default async function TeacherPage({ params }: TeacherPageProps) {
@@ -88,6 +85,7 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
 
   return (
     <main>
+      <JsonLd data={createPersonJsonLd(sheikh)} />
       <section className="border-b border-stone-200 bg-[#fbfaf7]">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
           <h1 className="text-4xl font-bold text-stone-950 md:text-5xl">{sheikh.name}</h1>
@@ -117,11 +115,7 @@ export default async function TeacherPage({ params }: TeacherPageProps) {
                 >
                   السلاسل والدروس الصوتية
                 </h2>
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                  {teacherCourses.map((course) => (
-                    <BookCard key={course.slug} book={course} />
-                  ))}
-                </div>
+                <BookSeriesCollection books={teacherCourses} headingLevel={3} />
               </section>
             ) : null}
 
