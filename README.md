@@ -38,10 +38,12 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ## PDF.js and Cloudflare R2 setup
 
 The document reader self-hosts Mozilla's official generic PDF.js viewer under
-`/pdfjs/web/viewer.html` and loads PDFs directly from the Cloudflare R2 custom
-domains. The `pdfjs-dist` dependency is pinned exactly, and `npm run build`
-checks that the public API, sandbox, and worker files are byte-for-byte matches
-for that installed version.
+`/pdfjs/web/viewer.html`. The viewer loads an allowlisted same-origin streaming
+route at `/api/library-file/[type]/[slug]`; that route resolves the item from
+`data/library-items.ts`, forwards Range requests to R2, and streams the response
+without buffering the PDF in application memory. The `pdfjs-dist` dependency is
+pinned exactly, and `npm run build` checks that the public API, sandbox, and
+worker files are byte-for-byte matches for that installed version.
 
 Inline reading must keep the normal PDF URLs unchanged. Direct downloads use
 the same URL with `?download=1`, so Cloudflare needs a Response Header
@@ -88,8 +90,9 @@ Header Transform Rule before the download rule:
 
 Set `Content-Type` to `application/pdf` and `Content-Disposition` to `inline`.
 
-PDF.js also requires CORS on both R2 buckets, `sabeel-alrashad-books` and
-`sabeel-alrashad-articles`:
+The same-origin reader route means PDF.js no longer depends on browser CORS for
+either R2 bucket. The following CORS policy can still be applied when external
+browser clients need direct programmatic access to the PDFs:
 
 ```json
 [

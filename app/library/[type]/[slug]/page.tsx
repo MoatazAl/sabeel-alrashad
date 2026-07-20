@@ -64,7 +64,11 @@ export default async function LibraryItemPage({ params }: LibraryItemPageProps) 
       </section>
 
       <section className="py-6 sm:py-8">
-        <PdfReader fileUrl={item.fileUrl} title={item.title} />
+        <PdfReader
+          directFileUrl={item.fileUrl}
+          readerFileUrl={`/api/library-file/${itemTypeToRouteType(item.type)}/${item.slug}`}
+          title={item.title}
+        />
       </section>
     </main>
   );

@@ -18378,17 +18378,6 @@ const PDFViewerApplication = {
       appConfig,
       eventBus
     } = this;
-    if (window.parent !== window) {
-      const reportViewerStatus = status => {
-        window.SABEEL_PDFJS_STATUS = status;
-        window.parent.postMessage({
-          type: "sabeel:pdfjs-status",
-          status
-        }, window.location.origin);
-      };
-      eventBus.on("documentloaded", () => reportViewerStatus("ready"));
-      eventBus.on("documenterror", () => reportViewerStatus("error"));
-    }
     let file;
     const queryString = document.location.search.substring(1);
     const params = parseQueryString(queryString);
@@ -19508,7 +19497,6 @@ initCom(PDFViewerApplication);
 PDFPrintServiceFactory.initGlobals(PDFViewerApplication);
 {
   const HOSTED_VIEWER_ORIGINS = new Set(["null", "http://mozilla.github.io", "https://mozilla.github.io"]);
-  const SABEEL_PDF_ORIGINS = new Set(["https://books.sabeelalrashad.com", "https://articles.sabeelalrashad.com"]);
   var validateFileURL = function (file) {
     if (!file) {
       return;
@@ -19518,7 +19506,7 @@ PDFPrintServiceFactory.initGlobals(PDFViewerApplication);
       return;
     }
     const fileOrigin = URL.parse(file, window.location)?.origin;
-    if (fileOrigin === viewerOrigin || SABEEL_PDF_ORIGINS.has(fileOrigin)) {
+    if (fileOrigin === viewerOrigin) {
       return;
     }
     const ex = new Error("file origin does not match viewer's");

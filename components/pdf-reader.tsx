@@ -5,7 +5,8 @@ import { ExternalLink, Maximize2, Minimize2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type PdfReaderProps = {
-  fileUrl: string;
+  directFileUrl: string;
+  readerFileUrl: string;
   title: string;
 };
 
@@ -22,7 +23,6 @@ type PdfJsViewerApplication = {
 
 type PdfJsViewerWindow = Window & {
   PDFViewerApplication?: PdfJsViewerApplication;
-  SABEEL_PDFJS_STATUS?: "ready" | "error";
 };
 
 type ReaderStatus = "loading" | "ready" | "error";
@@ -32,9 +32,11 @@ type ReaderState = {
   status: ReaderStatus;
 };
 
-const PDF_LOAD_TIMEOUT_MS = 45_000;
-
-export function PdfReader({ fileUrl, title }: PdfReaderProps) {
+export function PdfReader({
+  directFileUrl,
+  readerFileUrl,
+  title,
+}: PdfReaderProps) {
   const readerRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const connectViewerRef = useRef<(source: PdfJsViewerWindow) => void>(() => {});
@@ -42,8 +44,8 @@ export function PdfReader({ fileUrl, title }: PdfReaderProps) {
   const [isFallbackFullscreen, setIsFallbackFullscreen] = useState(false);
 
   const viewerUrl = useMemo(
-    () => `/pdfjs/web/viewer.html?file=${encodeURIComponent(fileUrl)}`,
-    [fileUrl]
+    () => `/pdfjs/web/viewer.html?file=${encodeURIComponent(readerFileUrl)}`,
+    [readerFileUrl]
   );
   const [readerState, setReaderState] = useState<ReaderState>({
     viewerUrl,
@@ -87,22 +89,40 @@ export function PdfReader({ fileUrl, title }: PdfReaderProps) {
     let disposed = false;
     let detachViewerEvents: (() => void) | undefined;
     let connectedApplication: PdfJsViewerApplication | undefined;
-
-    const timeoutId = setTimeout(() => {
-      if (!disposed) setReaderState({ viewerUrl, status: "error" });
-    }, PDF_LOAD_TIMEOUT_MS);
+    const proxyCheckController = new AbortController();
 
     function markReady() {
       if (disposed) return;
-      clearTimeout(timeoutId);
       setReaderState({ viewerUrl, status: "ready" });
     }
 
     function markFailed() {
       if (disposed) return;
-      clearTimeout(timeoutId);
       setReaderState({ viewerUrl, status: "error" });
     }
+
+    async function checkProxyResponse() {
+      try {
+        const response = await fetch(readerFileUrl, {
+          headers: { Range: "bytes=0-0" },
+          cache: "no-store",
+          signal: proxyCheckController.signal,
+        });
+        const contentType = response.headers.get("content-type") ?? "";
+        await response.body?.cancel();
+
+        if (
+          (response.status !== 200 && response.status !== 206) ||
+          !contentType.toLowerCase().startsWith("application/pdf")
+        ) {
+          markFailed();
+        }
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") markFailed();
+      }
+    }
+
+    void checkProxyResponse();
 
     async function connectViewer(source: PdfJsViewerWindow) {
       const application = source.PDFViewerApplication;
@@ -135,40 +155,20 @@ export function PdfReader({ fileUrl, title }: PdfReaderProps) {
       void connectViewer(source);
     };
 
-    function handleWebViewerLoaded(event: Event) {
-      const source = (event as CustomEvent<{ source?: PdfJsViewerWindow }>).detail
-        ?.source;
-
-      if (source && source === frameRef.current?.contentWindow) {
-        connectViewerRef.current(source);
-      }
+    const existingSource = frameRef.current?.contentWindow as
+      | PdfJsViewerWindow
+      | null;
+    if (existingSource?.PDFViewerApplication) {
+      connectViewerRef.current(existingSource);
     }
-
-    function handleViewerMessage(event: MessageEvent) {
-      if (
-        event.source !== frameRef.current?.contentWindow ||
-        event.origin !== globalThis.location.origin ||
-        event.data?.type !== "sabeel:pdfjs-status"
-      ) {
-        return;
-      }
-
-      if (event.data.status === "ready") markReady();
-      if (event.data.status === "error") markFailed();
-    }
-
-    document.addEventListener("webviewerloaded", handleWebViewerLoaded);
-    globalThis.addEventListener("message", handleViewerMessage);
 
     return () => {
       disposed = true;
-      clearTimeout(timeoutId);
+      proxyCheckController.abort();
       detachViewerEvents?.();
-      document.removeEventListener("webviewerloaded", handleWebViewerLoaded);
-      globalThis.removeEventListener("message", handleViewerMessage);
       connectViewerRef.current = () => {};
     };
-  }, [viewerUrl]);
+  }, [readerFileUrl, viewerUrl]);
 
   async function enterFullscreen() {
     const element = readerRef.current;
@@ -204,12 +204,6 @@ export function PdfReader({ fileUrl, title }: PdfReaderProps) {
 
   function handleFrameLoad() {
     const source = frameRef.current?.contentWindow as PdfJsViewerWindow | null;
-    if (source?.SABEEL_PDFJS_STATUS === "ready") {
-      setReaderState({ viewerUrl, status: "ready" });
-    }
-    if (source?.SABEEL_PDFJS_STATUS === "error") {
-      setReaderState({ viewerUrl, status: "error" });
-    }
     if (source?.PDFViewerApplication) connectViewerRef.current(source);
   }
 
@@ -289,7 +283,7 @@ export function PdfReader({ fileUrl, title }: PdfReaderProps) {
                   تحقق من اتصالك بالإنترنت، أو افتح الملف مباشرة كخيار بديل.
                 </p>
                 <a
-                  href={fileUrl}
+                  href={directFileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-6 inline-flex items-center gap-2 rounded-md bg-teal-700 px-5 py-3 font-bold text-white transition hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-400"

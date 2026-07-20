@@ -5,6 +5,7 @@ import "@fontsource/cairo/700.css";
 import "@fontsource/cairo/800.css";
 import "./globals.css";
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Header } from "@/components/header";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -49,6 +50,8 @@ export default function RootLayout({
             <span>مكتبة تعليمية مرتبة للكتب والدروس والسلاسل العلمية.</span>
           </div>
         </footer>
+
+        <SpeedInsights />
       </body>
     </html>
   );
