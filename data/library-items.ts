@@ -99,7 +99,7 @@ const articles: LibraryItem[] = [
   {
     id: "raed-article-al-amr-wal-nahy",
     slug: "al-amr-wal-nahy",
-    title: "الأمر بالمعروف والنهي عن المنكر",
+    title: "أحكام الأمر بالمعروف والنهي عن المنكر",
     authorName: raedAuthor.name,
     authorSlug: raedAuthor.slug,
     type: "article",
@@ -109,7 +109,7 @@ const articles: LibraryItem[] = [
   {
     id: "raed-article-al-athar-al-qadimah",
     slug: "al-athar-al-qadimah",
-    title: "الآثار القديمة",
+    title: "الآثار القديمة وخطورة العناية بها وتعظيمها على التوحيد",
     authorName: raedAuthor.name,
     authorSlug: raedAuthor.slug,
     type: "article",
@@ -129,7 +129,7 @@ const articles: LibraryItem[] = [
   {
     id: "raed-article-al-bursa",
     slug: "al-bursa",
-    title: "البورصة",
+    title: "البورصة... سوق الكسب الحرام",
     authorName: raedAuthor.name,
     authorSlug: raedAuthor.slug,
     type: "article",
@@ -139,7 +139,7 @@ const articles: LibraryItem[] = [
   {
     id: "raed-article-al-difa-an-al-nabi",
     slug: "al-difa-an-al-nabi",
-    title: "الدفاع عن نبينا محمد صلى الله عليه وسلم",
+    title: "كلمة في الدفاع عن نبينا محمد صلى الله عليه وسلم",
     authorName: raedAuthor.name,
     authorSlug: raedAuthor.slug,
     type: "article",
