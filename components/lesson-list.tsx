@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { FallbackImage } from "@/components/fallback-image";
 
 export type LessonListItem = {
   id: string;
@@ -9,6 +10,7 @@ export type LessonListItem = {
   href?: string;
   bookTitle?: string;
   sheikhName?: string;
+  imageSources?: string[];
 };
 
 type LessonListProps = {
@@ -39,6 +41,17 @@ export function LessonList({
         const content = (
           <>
             <div className="flex items-start gap-3">
+              {lesson.imageSources?.length ? (
+                <span className="relative mt-1 aspect-video w-24 shrink-0 overflow-hidden rounded-md bg-stone-100">
+                  <FallbackImage
+                    sources={lesson.imageSources}
+                    alt={`صورة ${lesson.title}`}
+                    fill
+                    sizes="96px"
+                    className="object-cover"
+                  />
+                </span>
+              ) : null}
               <span className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-sm font-bold text-gray-600">
                 {index + 1}
               </span>

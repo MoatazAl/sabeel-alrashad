@@ -630,6 +630,8 @@ const rawBooks: BookSource[] = [
     explainerSlug: "saad-al-zaatari",
     category: "مصطلح الحديث",
     status: "completed",
+    type: "video",
+    source: "youtube",
     title: "شرح المنظومة البيقونية",
     authorName: "الإمام عمر بن محمد البيقوني",
     explainerName: "الشيخ سعد بن فتحي الزعتري",
@@ -637,6 +639,8 @@ const rawBooks: BookSource[] = [
       "شرح المنظومة البيقونية في مصطلح الحديث، في أربعة دروس لفضيلة الشيخ سعد بن فتحي الزعتري.",
     cover: "https://i.ytimg.com/vi/LgZUoSdzEA0/hqdefault.jpg",
     coverImage: "https://i.ytimg.com/vi/LgZUoSdzEA0/hqdefault.jpg",
+    playlistThumbnailUrl:
+      "https://i.ytimg.com/vi/LgZUoSdzEA0/hqdefault.jpg",
     lessons: [
       {
         id: "bayquniyyah-1",
@@ -1023,8 +1027,18 @@ const rawBooks: BookSource[] = [
   },
 ];
 
-export const books: Book[] = rawBooks.map((book) => ({
-  ...book,
-  explainerName: book.explainerName ?? explainerNames[book.explainerSlug] ?? "",
-  lessonsCount: book.lessons.length,
-}));
+export const books: Book[] = rawBooks.map((book) => {
+  const isYouTubeCourse =
+    book.source === "youtube" ||
+    (book.lessons.some((lesson) => lesson.youtubeId || lesson.youtubeUrl) &&
+      book.lessons.every((lesson) => !lesson.audioUrl));
+
+  return {
+    ...book,
+    type: isYouTubeCourse ? "video" : book.type,
+    source: isYouTubeCourse ? "youtube" : book.source,
+    explainerName:
+      book.explainerName ?? explainerNames[book.explainerSlug] ?? "",
+    lessonsCount: book.lessons.length,
+  };
+});

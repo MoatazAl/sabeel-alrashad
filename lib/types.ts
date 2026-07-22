@@ -42,6 +42,7 @@ export type Book = {
   description?: string;
   cover?: string;
   coverImage?: string;
+  playlistThumbnailUrl?: string;
   imageFit?: "cover" | "contain";
   imagePosition?: string;
   coverFrame?: "dark";

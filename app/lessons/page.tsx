@@ -1,7 +1,5 @@
-import { BookSeriesCollection } from "@/components/book-series-collection";
-import { SearchBar } from "@/components/search-bar";
+import { LessonsCatalog } from "@/components/lessons-catalog";
 import { books } from "@/data/library";
-import { filterBooks } from "@/lib/library";
 import { createPageMetadata } from "@/lib/site";
 
 export const metadata = createPageMetadata({
@@ -18,11 +16,6 @@ type LessonsPageProps = {
 export default async function LessonsPage({ searchParams }: LessonsPageProps) {
   const { q = "" } = await searchParams;
   const query = q.trim();
-  const playlists = filterBooks({
-    query,
-    status: "all",
-    source: books,
-  });
 
   return (
     <main>
@@ -35,29 +28,11 @@ export default async function LessonsPage({ searchParams }: LessonsPageProps) {
             تصفح الدروس ضمن سلاسلها الكاملة، ثم افتح السلسلة للوصول إلى
             قائمة دروسها.
           </p>
-          <div className="mt-8">
-            <SearchBar
-              action="/lessons"
-              defaultValue={query}
-              placeholder="ابحث باسم السلسلة أو الشيخ أو التصنيف..."
-            />
-          </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-        {playlists.length > 0 ? (
-          <BookSeriesCollection books={playlists} />
-        ) : (
-          <div className="rounded-xl border border-dashed border-stone-300 bg-white p-12 text-center">
-            <h2 className="text-2xl font-bold text-stone-900">
-              لا توجد سلاسل مطابقة
-            </h2>
-            <p className="mt-3 text-base leading-8 text-stone-500">
-              جرّب البحث باسم آخر أو باسم الشيخ.
-            </p>
-          </div>
-        )}
+        <LessonsCatalog books={books} initialQuery={query} />
       </section>
     </main>
   );

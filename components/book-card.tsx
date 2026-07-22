@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
+import { FallbackImage } from "@/components/fallback-image";
+import { getCourseCoverSources } from "@/lib/course-images";
 import type { Book } from "@/lib/types";
 
 type BookCardProps = {
@@ -10,10 +12,15 @@ type BookCardProps = {
 export function BookCard({ book }: BookCardProps) {
   const status = book.status || "completed";
   const hasDarkCoverFrame = book.coverFrame === "dark";
+  const coverSources = getCourseCoverSources(book);
+  const hasCoverImage =
+    book.source === "youtube"
+      ? coverSources.length > 0
+      : Boolean(book.coverImage);
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-stone-200/60 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-emerald-800/20 hover:shadow-md">
-      {book.coverImage ? (
+      {hasCoverImage ? (
         <Link
           href={`/books/${book.slug}`}
           className={`relative block aspect-[16/10] overflow-hidden ${
@@ -25,22 +32,35 @@ export function BookCard({ book }: BookCardProps) {
               hasDarkCoverFrame ? "inset-2 sm:inset-3" : "inset-0"
             }`}
           >
-            <Image
-              src={book.coverImage}
-              alt={`صورة سلسلة ${book.title}`}
-              fill
-              unoptimized={hasDarkCoverFrame}
-              sizes="(min-width: 1280px) 380px, (min-width: 768px) 50vw, 100vw"
-              className={`transition duration-500 ${
-                hasDarkCoverFrame
-                  ? "object-contain"
-                  : "object-cover group-hover:scale-[1.02]"
-              }`}
-              style={{
-                objectFit: book.imageFit ?? "cover",
-                objectPosition: book.imagePosition ?? "center",
-              }}
-            />
+            {book.source === "youtube" ? (
+              <FallbackImage
+                sources={coverSources}
+                alt={`صورة سلسلة ${book.title}`}
+                fill
+                sizes="(min-width: 1280px) 380px, (min-width: 768px) 50vw, 100vw"
+                className="object-cover transition duration-500 group-hover:scale-[1.02]"
+                style={{
+                  objectPosition: book.imagePosition ?? "center",
+                }}
+              />
+            ) : (
+              <Image
+                src={book.coverImage!}
+                alt={`صورة سلسلة ${book.title}`}
+                fill
+                unoptimized={hasDarkCoverFrame}
+                sizes="(min-width: 1280px) 380px, (min-width: 768px) 50vw, 100vw"
+                className={`transition duration-500 ${
+                  hasDarkCoverFrame
+                    ? "object-contain"
+                    : "object-cover group-hover:scale-[1.02]"
+                }`}
+                style={{
+                  objectFit: book.imageFit ?? "cover",
+                  objectPosition: book.imagePosition ?? "center",
+                }}
+              />
+            )}
           </span>
         </Link>
       ) : null}

@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { useMemo, useState } from "react";
 import { LessonList } from "@/components/lesson-list";
 import { RecordingCoursePlayer } from "@/components/recording-course-player";
+import { getYouTubeLessonThumbnailSources } from "@/lib/course-images";
 import { groupLessons } from "@/lib/library";
 import type { Book, Lesson } from "@/lib/types";
 import { getVideoEmbedUrl } from "@/lib/youtube";
@@ -238,6 +239,10 @@ function VideoBookPlaylist({
                           id: lesson.id,
                           title: lesson.title,
                           section: lesson.duration,
+                          imageSources:
+                            book.source === "youtube"
+                              ? getYouTubeLessonThumbnailSources(lesson)
+                              : undefined,
                         }))}
                         currentLessonId={currentLesson.id}
                         onSelect={selectLesson}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { LibraryItem } from "@/data/library-items";
 import type { Book, Sheikh } from "@/lib/types";
-import { extractVideoId } from "@/lib/youtube";
+import { getCourseCoverSources } from "@/lib/course-images";
 import {
   DEFAULT_OPEN_GRAPH_IMAGE,
   SITE_NAME,
@@ -22,16 +22,7 @@ export function getCourseDescription(book: Book) {
 }
 
 export function getCourseImage(book: Book) {
-  if (book.coverImage) return book.coverImage;
-
-  const firstYouTubeVideo = book.lessons.find((lesson) => lesson.youtubeUrl);
-  const videoId = firstYouTubeVideo?.youtubeUrl
-    ? extractVideoId(firstYouTubeVideo.youtubeUrl)
-    : null;
-
-  return videoId
-    ? `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
-    : DEFAULT_OPEN_GRAPH_IMAGE;
+  return getCourseCoverSources(book)[0] ?? DEFAULT_OPEN_GRAPH_IMAGE;
 }
 
 export function createCourseMetadata(book: Book): Metadata {

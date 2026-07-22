@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
 
-export const SITE_NAME = "سبيل الرشاد";
-export const SITE_ALTERNATE_NAME = "Sabeel Al-Rashad";
-export const SITE_URL = "https://sabeelalrashad.com";
-export const SITE_DESCRIPTION =
-  "سبيل الرشاد موقع إسلامي يضم الدروس العلمية والدورات الصوتية والكتب والمقالات والمحتوى الشرعي لطلاب العلم.";
-export const DEFAULT_OPEN_GRAPH_IMAGE =
-  "/images/courses/nukhbat-al-fikar/000.png";
+export const siteConfig = {
+  name: "سبيل الرشاد",
+  alternateName: "Sabeel Al-Rashad",
+  url: "https://sabeelalrashad.com",
+  description:
+    "سبيل الرشاد موقع إسلامي يضم الدروس العلمية والدورات الصوتية والكتب والمقالات والمحتوى الشرعي لطلاب العلم.",
+  contactEmail: "contact@sabeelalrashad.com",
+  defaultOpenGraphImage: "/images/courses/nukhbat-al-fikar/000.png",
+} as const;
+
+export const SITE_NAME = siteConfig.name;
+export const SITE_ALTERNATE_NAME = siteConfig.alternateName;
+export const SITE_URL = siteConfig.url;
+export const SITE_DESCRIPTION = siteConfig.description;
+export const DEFAULT_OPEN_GRAPH_IMAGE = siteConfig.defaultOpenGraphImage;
 
 export function absoluteUrl(path: string) {
   return new URL(path, SITE_URL).toString();
