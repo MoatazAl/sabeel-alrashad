@@ -26,7 +26,7 @@ export default async function LessonsPage({ searchParams }: LessonsPageProps) {
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-9 text-stone-600">
             تصفح الدروس ضمن سلاسلها الكاملة، ثم افتح السلسلة للوصول إلى
-            قائمة دروسها.
+            قائمة دروسها
           </p>
         </div>
       </section>

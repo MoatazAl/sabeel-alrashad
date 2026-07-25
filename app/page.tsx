@@ -142,7 +142,7 @@ export default function HomePage() {
             id="teachers-heading"
             eyebrow="أهل العلم"
             title="الشيوخ"
-            description="تصفح السلاسل والدروس بحسب الشيخ، وانتقل مباشرة إلى مواده العلمية."
+            description="تصفح السلاسل والدروس بحسب الشيخ، وانتقل مباشرة إلى مواده العلمية"
             href="/teachers"
           />
           <div className="grid gap-5 md:grid-cols-3">
@@ -244,7 +244,7 @@ export default function HomePage() {
             id="recent-heading"
             eyebrow="جديد المنصة"
             title="أضيف حديثاً"
-            description="أحدث السلاسل والمواد التي أضيفت إلى المكتبة."
+            description="أحدث السلاسل والمواد التي أضيفت إلى المكتبة"
             href="/lessons"
           />
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

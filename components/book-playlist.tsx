@@ -42,8 +42,9 @@ function VideoBookPlaylist({
     book.lessons[0];
 
   const [currentLesson, setCurrentLesson] = useState<Lesson>(initialLesson);
-  const [openSection, setOpenSection] = useState<string | null>(null);
-
+  const [openSection, setOpenSection] = useState<string | null>(
+    initialLesson.section ?? null
+  );
   const currentIndex = book.lessons.findIndex(
     (lesson) => lesson.id === currentLesson.id
   );
@@ -64,7 +65,7 @@ function VideoBookPlaylist({
     if (!lesson) return;
 
     setCurrentLesson(lesson);
-    setOpenSection(lesson.section || "الدروس");
+    setOpenSection(lesson.section ?? null);
 
     const nextUrl = new URL(window.location.href);
     nextUrl.searchParams.set("lesson", lesson.id);
@@ -166,7 +167,7 @@ function VideoBookPlaylist({
         <div className="mb-4">
           <h2 className="text-2xl font-bold text-stone-950">قائمة الدروس</h2>
           <p className="mt-2 text-base text-stone-500">
-            اختر باباً لعرض دروسه، أو انتقل بالتتابع من الأزرار.
+            اختر باباً لعرض دروسه، أو انتقل بالتتابع من الأزرار
           </p>
         </div>
 
@@ -183,8 +184,8 @@ function VideoBookPlaylist({
                 <section
                   key={section}
                   className={`overflow-hidden rounded-xl border bg-white transition ${isOpen
-                      ? "border-emerald-800/25 shadow-sm"
-                      : "border-stone-200/80"
+                    ? "border-emerald-800/25 shadow-sm"
+                    : "border-stone-200/80"
                     }`}
                 >
                   <h3>
@@ -198,10 +199,10 @@ function VideoBookPlaylist({
                       aria-expanded={isOpen}
                       aria-controls={panelId}
                       className={`flex w-full items-center justify-between gap-4 p-4 text-start font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-800 ${isOpen
-                          ? "bg-emerald-50 text-emerald-950"
-                          : containsCurrentLesson
-                            ? "bg-stone-50 text-stone-950"
-                            : "text-stone-800 hover:bg-stone-50"
+                        ? "bg-emerald-50 text-emerald-950"
+                        : containsCurrentLesson
+                          ? "bg-stone-50 text-stone-950"
+                          : "text-stone-800 hover:bg-stone-50"
                         }`}
                     >
                       <span className="flex min-w-0 items-center gap-2">

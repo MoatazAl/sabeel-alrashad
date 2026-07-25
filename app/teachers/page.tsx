@@ -16,7 +16,7 @@ export default function TeachersPage() {
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
           <h1 className="text-4xl font-bold text-stone-950 md:text-5xl">الشيوخ</h1>
           <p className="mt-5 max-w-2xl text-lg leading-9 text-stone-600">
-            اختر شيخاً لتصفح سلاسله ودروسه الصوتية وكتبه ومقالاته ورسائله.
+            اختر شيخاً لتصفح سلاسله ودروسه الصوتية وكتبه ومقالاته ورسائله
           </p>
         </div>
       </section>

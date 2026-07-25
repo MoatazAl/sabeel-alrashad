@@ -64,7 +64,7 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-9 text-stone-600">
             كتب ومقالات ورسائل علمية لفضيلة المشايخ، بروابط مباشرة من
-            التخزين السحابي دون نسخ محلية للملفات.
+            التخزين السحابي دون نسخ محلية للملفات
           </p>
         </div>
       </section>

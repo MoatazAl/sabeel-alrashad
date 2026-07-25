@@ -14,17 +14,17 @@ export const sheikhs: Sheikh[] = [
     slug: "raed-mahdawi",
     authorSlug: "raed-al-mahdawi",
     name: "الشيخ رائد المهداوي",
-    bio: "شروح علمية ومجالس ودروس متنوعة.",
+    bio: "شروح علمية ومجالس ودروس متنوعة",
   },
   {
     slug: "saad-al-zaatari",
     name: "الشيخ سعد بن فتحي الزعتري",
-    bio: "دروس وشروح في الحديث والفقه والتفسير.",
+    bio: "دروس وشروح في الحديث والفقه والتفسير",
   },
   {
     slug: "asaad-al-zaatari",
     name: "الشيخ أسعد الزعتري",
-    bio: "دروس وشروح في العقيدة والحديث والمتون.",
+    bio: "دروس وشروح في العقيدة والحديث والمتون",
   },
 ];
 
@@ -602,6 +602,8 @@ const rawBooks: BookSource[] = [
     slug: "raed-buyu",
     explainerSlug: "raed-mahdawi",
     category: "الفقه",
+    type: "video",
+    source: "youtube",
     title: "شرح كتاب البيوع من بلوغ المرام",
     authorName: "الحافظ ابن حجر العسقلاني",
     explainerName: raedMahdawiExplainerName,

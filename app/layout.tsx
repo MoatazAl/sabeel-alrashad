@@ -53,7 +53,7 @@ export default function RootLayout({
         <footer className="border-t border-stone-200/80 bg-white">
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 px-4 py-10 text-center text-sm text-gray-600 sm:px-6 lg:px-8">
             <span className="font-bold text-emerald-950">سبيل الرشاد</span>
-            <span>مكتبة تعليمية مرتبة للكتب والدروس والسلاسل العلمية.</span>
+            <span>مكتبة تعليمية مرتبة للكتب والدروس والسلاسل العلمية</span>
             <nav
               aria-label="روابط تذييل الموقع"
               className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 font-semibold text-gray-700"

@@ -51,7 +51,6 @@ export function getYouTubeLessonThumbnailSources(lesson: Lesson) {
   }
 
   return uniqueSources([
-    `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
     `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
     lesson.image,
     lesson.coverImage,
