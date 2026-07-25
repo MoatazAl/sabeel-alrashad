@@ -605,11 +605,12 @@ const rawBooks: BookSource[] = [
     title: "شرح كتاب البيوع من بلوغ المرام",
     authorName: "الحافظ ابن حجر العسقلاني",
     explainerName: raedMahdawiExplainerName,
-    cover: raedCourseCoverImages.alBuyuMinBulughAlMaram,
-    coverImage: raedCourseCoverImages.alBuyuMinBulughAlMaram,
-
+    cover: "https://i.ytimg.com/vi/w5fMF_fxiiE/hqdefault.jpg",
+    coverImage: "https://i.ytimg.com/vi/w5fMF_fxiiE/hqdefault.jpg",
+    playlistThumbnailUrl:
+      "https://i.ytimg.com/vi/w5fMF_fxiiE/hqdefault.jpg",
     status: "ongoing",
-    updatedAt: "2026-04-17",
+    updatedAt: "2026-07-25",
     lessons: [
       { id: "buyu-1", title: "الدرس 1", youtubeUrl: "https://youtu.be/w5fMF_fxiiE" },
       { id: "buyu-2", title: "الدرس 2", youtubeUrl: "https://youtu.be/GNzBLSWvXak" },
@@ -623,6 +624,14 @@ const rawBooks: BookSource[] = [
       { id: "buyu-10", title: "الدرس 10", youtubeUrl: "https://youtu.be/8HQ35cGwxg0" },
       { id: "buyu-11", title: "الدرس 11", youtubeUrl: "https://youtu.be/5WBQDq3J0-8" },
       { id: "buyu-12", title: "الدرس 12", youtubeUrl: "https://youtu.be/5WBQDq3J0-8" },
+      {
+        id: "buyu-13",
+        number: 13,
+        title: "الدرس 13",
+        audioUrl:
+          "https://media.sabeelalrashad.com/raed-al-mahdawi/al-buyu-min-bulugh-al-maram/013.m4a",
+        image: "/images/courses/al-buyu-min-bulugh-al-maram/013.png",
+      },
     ],
   },
   {

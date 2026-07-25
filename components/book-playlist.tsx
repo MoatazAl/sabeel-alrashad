@@ -19,9 +19,11 @@ export function BookPlaylist({
   book,
   initialLessonId,
 }: BookPlaylistProps) {
-  const hasAudioLessons = book.lessons.some((lesson) => lesson.audioUrl);
+  const isAudioOnlyCourse =
+    book.lessons.length > 0 &&
+    book.lessons.every((lesson) => Boolean(lesson.audioUrl));
 
-  if (hasAudioLessons) {
+  if (isAudioOnlyCourse) {
     return (
       <RecordingCoursePlayer book={book} initialLessonId={initialLessonId} />
     );
@@ -73,29 +75,17 @@ function VideoBookPlaylist({
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <section className="min-w-0 rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
         {currentLesson.audioUrl ? (
-          <div className="space-y-4">
-            {currentImage ? (
-              <div className="relative aspect-video overflow-hidden rounded-md bg-stone-100">
-                <Image
-                  key={`${currentLesson.id}-image`}
-                  src={currentImage}
-                  alt={`صورة ${currentLesson.title}`}
-                  fill
-                  priority
-                  sizes="(min-width: 1024px) calc(100vw - 440px), 100vw"
-                  className="object-cover"
-                />
-              </div>
-            ) : null}
-            <div className="rounded-md border border-stone-200 bg-stone-50 p-4">
-              <audio
-                key={currentLesson.id}
-                controls
-                className="w-full"
-                src={currentLesson.audioUrl}
-              />
-            </div>
-          </div>
+          <RecordingCoursePlayer
+            key={currentLesson.id}
+            book={{
+              ...book,
+              lessons: [currentLesson],
+            }}
+            initialLessonId={currentLesson.id}
+            playerOnly
+            displayLessonNumber={currentLesson.number ?? currentIndex + 1}
+            displayLessonTotal={book.lessons.length}
+          />
         ) : (
           <div className="aspect-video overflow-hidden rounded-md bg-stone-950">
             {embedUrl ? (
@@ -192,11 +182,10 @@ function VideoBookPlaylist({
               return (
                 <section
                   key={section}
-                  className={`overflow-hidden rounded-xl border bg-white transition ${
-                    isOpen
+                  className={`overflow-hidden rounded-xl border bg-white transition ${isOpen
                       ? "border-emerald-800/25 shadow-sm"
                       : "border-stone-200/80"
-                  }`}
+                    }`}
                 >
                   <h3>
                     <button
@@ -208,19 +197,17 @@ function VideoBookPlaylist({
                       }
                       aria-expanded={isOpen}
                       aria-controls={panelId}
-                      className={`flex w-full items-center justify-between gap-4 p-4 text-start font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-800 ${
-                        isOpen
+                      className={`flex w-full items-center justify-between gap-4 p-4 text-start font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-800 ${isOpen
                           ? "bg-emerald-50 text-emerald-950"
                           : containsCurrentLesson
                             ? "bg-stone-50 text-stone-950"
                             : "text-stone-800 hover:bg-stone-50"
-                      }`}
+                        }`}
                     >
                       <span className="flex min-w-0 items-center gap-2">
                         <ChevronDown
-                          className={`h-5 w-5 shrink-0 transition-transform ${
-                            isOpen ? "rotate-180" : ""
-                          }`}
+                          className={`h-5 w-5 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""
+                            }`}
                           aria-hidden="true"
                         />
                         <span>{section}</span>

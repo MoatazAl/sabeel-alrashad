@@ -1,12 +1,6 @@
 import Link from "next/link";
 import { BookOpenText } from "lucide-react";
-
-const navItems = [
-  { href: "/", label: "الرئيسية" },
-  { href: "/library", label: "المكتبة" },
-  { href: "/teachers", label: "الشيوخ" },
-  { href: "/lessons", label: "الدروس" },
-];
+import { MainNavigation } from "@/components/main-navigation";
 
 export function Header() {
   return (
@@ -29,20 +23,7 @@ export function Header() {
           </span>
         </Link>
 
-        <nav
-          aria-label="التنقل الرئيسي"
-          className="flex flex-wrap items-center gap-1 text-sm font-semibold text-gray-700 sm:text-base"
-        >
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-lg px-3.5 py-2 transition hover:bg-emerald-50 hover:text-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-800"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <MainNavigation />
       </div>
     </header>
   );

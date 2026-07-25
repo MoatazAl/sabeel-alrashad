@@ -119,11 +119,11 @@ export default function HomePage() {
             <h1 className="mt-7 text-3xl font-extrabold leading-relaxed tracking-tight text-gray-800 sm:text-4xl">
               {SITE_NAME}
               <span className="mt-2 block text-xl font-bold sm:text-2xl">
-                مواد علمية مختارة من دروس المشايخ وكتبهم ومقالاتهم.
+                مواد علمية مختارة من دروس المشايخ وكتبهم ومقالاتهم
               </span>
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base font-normal leading-relaxed text-gray-600 sm:text-lg">
-              للاستماع والقراءة والتحميل.
+              للاستماع والقراءة والتحميل
             </p>
 
             <div className="mx-auto mt-8 max-w-2xl text-start">

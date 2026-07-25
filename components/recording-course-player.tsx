@@ -26,6 +26,9 @@ import type { Book, Lesson } from "@/lib/types";
 type RecordingCoursePlayerProps = {
   book: Book;
   initialLessonId?: string;
+  playerOnly?: boolean;
+  displayLessonNumber?: number;
+  displayLessonTotal?: number;
 };
 
 const playbackRates = [0.75, 1, 1.25, 1.5, 1.75, 2] as const;
@@ -52,6 +55,9 @@ function getLessonNumber(lesson: Lesson, index: number) {
 export function RecordingCoursePlayer({
   book,
   initialLessonId,
+  playerOnly = false,
+  displayLessonNumber,
+  displayLessonTotal,
 }: RecordingCoursePlayerProps) {
   const lessons = useMemo(
     () => book.lessons.filter((lesson) => Boolean(lesson.audioUrl)),
@@ -101,26 +107,30 @@ export function RecordingCoursePlayer({
   const selectedSectionLessons = selectedLesson
     ? groupedLessons[selectedLesson.section || "الدروس"] ?? []
     : [];
-  const selectedLessonNumber = selectedLesson
-    ? usesSectionedLessonIndex
-      ? selectedSectionLessons.findIndex(
+  const selectedLessonNumber =
+    displayLessonNumber ??
+    (selectedLesson
+      ? usesSectionedLessonIndex
+        ? selectedSectionLessons.findIndex(
           (lesson) => lesson.id === selectedLesson.id
         ) + 1
-      : getLessonNumber(selectedLesson, selectedIndex)
-    : 0;
-  const selectedLessonTotal = usesSectionedLessonIndex
-    ? selectedSectionLessons.length
-    : lessons.length;
+        : getLessonNumber(selectedLesson, selectedIndex)
+      : 0);
+  const selectedLessonTotal =
+    displayLessonTotal ??
+    (usesSectionedLessonIndex
+      ? selectedSectionLessons.length
+      : lessons.length);
   const selectedLessonTitle = usesSectionedLessonIndex
     ? `الدرس ${selectedLessonNumber}`
     : selectedLesson?.title;
   const coverImage = showsMainCourseCover
     ? book.coverImage ?? book.cover ?? ""
     : selectedLesson?.coverImage ??
-      selectedLesson?.image ??
-      book.coverImage ??
-      book.cover ??
-      "";
+    selectedLesson?.image ??
+    book.coverImage ??
+    book.cover ??
+    "";
   const sliderMax = Math.max(duration, currentTime, 1);
   const progressPercent = Math.min(
     100,
@@ -506,24 +516,31 @@ export function RecordingCoursePlayer({
   return (
     <div dir="rtl" className="space-y-5">
       <div
-        className={[
-          "grid gap-5",
-          usesSectionedLessonIndex
-            ? "xl:grid-cols-[minmax(0,1fr)_360px]"
-            : "xl:grid-cols-[minmax(0,1fr)_320px]",
-        ].join(" ")}
+        className={
+          playerOnly
+            ? "block"
+            : [
+              "grid gap-5",
+              usesSectionedLessonIndex
+                ? "xl:grid-cols-[minmax(0,1fr)_360px]"
+                : "xl:grid-cols-[minmax(0,1fr)_320px]",
+            ].join(" ")
+        }
       >
         <section className="min-w-0 space-y-4">
-          <div className="space-y-2">
-            <p className="text-sm font-bold text-amber-700">تسجيل صوتي</p>
-            <h1 className="text-3xl font-bold leading-tight text-stone-950">
-              {book.title}
-            </h1>
-            <p className="text-lg font-semibold leading-8 text-emerald-950">
-              {selectedLessonTitle}
-            </p>
-          </div>
+          {!playerOnly ? (
+            <div className="space-y-2">
+              <p className="text-sm font-bold text-amber-700">تسجيل صوتي</p>
 
+              <h1 className="text-3xl font-bold leading-tight text-stone-950">
+                {book.title}
+              </h1>
+
+              <p className="text-lg font-semibold leading-8 text-emerald-950">
+                {selectedLessonTitle}
+              </p>
+            </div>
+          ) : null}
           <article
             ref={playerRef}
             onPointerMove={revealControlsTemporarily}
@@ -736,218 +753,223 @@ export function RecordingCoursePlayer({
             </div>
           </article>
 
-          <div className="rounded-lg border border-[#e0d2b4] bg-[#fffdf7] p-4 shadow-[0_12px_35px_rgba(57,44,24,0.08)]">
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-              <div>
-                <p className="text-sm font-bold text-amber-700">الدرس التالي</p>
-                <p className="mt-1 text-base leading-7 text-stone-700">
-                  {nextLesson
-                    ? usesSectionedLessonIndex
-                      ? `الدرس ${
-                          (groupedLessons[nextLesson.section || "الدروس"] ?? []).findIndex(
-                            (lesson) => lesson.id === nextLesson.id
-                          ) + 1
+          {!playerOnly ? (
+            <div className="rounded-lg border border-[#e0d2b4] bg-[#fffdf7] p-4 shadow-[0_12px_35px_rgba(57,44,24,0.08)]">
+              <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                <div>
+                  <p className="text-sm font-bold text-amber-700">الدرس التالي</p>
+                  <p className="mt-1 text-base leading-7 text-stone-700">
+                    {nextLesson
+                      ? usesSectionedLessonIndex
+                        ? `الدرس ${(groupedLessons[nextLesson.section || "الدروس"] ?? []).findIndex(
+                          (lesson) => lesson.id === nextLesson.id
+                        ) + 1
                         }`
-                      : nextLesson.title
-                    : "وصلت إلى آخر درس في هذه السلسلة."}
-                </p>
+                        : nextLesson.title
+                      : "وصلت إلى آخر درس في هذه السلسلة."}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => nextLesson && selectLesson(nextLesson)}
+                  disabled={!nextLesson}
+                  className="rounded-md bg-emerald-900 px-6 py-3 text-base font-bold text-white shadow-[0_10px_24px_rgba(6,78,59,0.22)] transition hover:bg-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-800 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:shadow-none"
+                >
+                  {nextLesson ? "تشغيل الدرس التالي" : "آخر درس"}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => nextLesson && selectLesson(nextLesson)}
-                disabled={!nextLesson}
-                className="rounded-md bg-emerald-900 px-6 py-3 text-base font-bold text-white shadow-[0_10px_24px_rgba(6,78,59,0.22)] transition hover:bg-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-800 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:shadow-none"
-              >
-                {nextLesson ? "تشغيل الدرس التالي" : "آخر درس"}
-              </button>
             </div>
-          </div>
+          ) : null}
         </section>
 
-        <aside
-          className={[
-            "min-w-0 rounded-lg border border-[#dfd1b4] bg-[#fffdf7] p-3 shadow-[0_14px_45px_rgba(57,44,24,0.08)] xl:sticky xl:top-28",
-            usesSectionedLessonIndex ? "xl:max-h-[720px]" : "xl:max-h-[560px]",
-          ].join(" ")}
-        >
-          {usesSectionedLessonIndex ? (
-            <>
-              <div className="mb-3 border-b border-[#eadfc8] pb-3">
-                <h2 className="text-xl font-bold leading-8 text-stone-950">
-                  قائمة الدروس
-                </h2>
-                <p className="mt-1 text-sm leading-6 text-stone-500">
-                  اختر كتاباً لعرض دروسه، أو انتقل بالتتابع من الأزرار.
-                </p>
-              </div>
+        {!playerOnly ? (
+          <aside
+            className={[
+              "min-w-0 rounded-lg border border-[#dfd1b4] bg-[#fffdf7] p-3 shadow-[0_14px_45px_rgba(57,44,24,0.08)] xl:sticky xl:top-28",
+              usesSectionedLessonIndex
+                ? "xl:max-h-[720px]"
+                : "xl:max-h-[560px]",
+            ].join(" ")}
+          >
+            {usesSectionedLessonIndex ? (
+              <>
+                <div className="mb-3 border-b border-[#eadfc8] pb-3">
+                  <h2 className="text-xl font-bold leading-8 text-stone-950">
+                    قائمة الدروس
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-stone-500">
+                    اختر كتاباً لعرض دروسه، أو انتقل بالتتابع من الأزرار.
+                  </p>
+                </div>
 
-              <div className="lesson-scroll max-h-[560px] space-y-3 overflow-y-auto pl-1 pr-0.5 xl:max-h-[600px]">
-                {Object.entries(groupedLessons).map(
-                  ([section, sectionLessons], sectionIndex) => {
-                    const isOpen = openSection === section;
-                    const containsSelectedLesson = sectionLessons.some(
-                      (lesson) => lesson.id === selectedLesson.id
-                    );
-                    const panelId = `recording-section-${sectionIndex}`;
+                <div className="lesson-scroll max-h-[560px] space-y-3 overflow-y-auto pl-1 pr-0.5 xl:max-h-[600px]">
+                  {Object.entries(groupedLessons).map(
+                    ([section, sectionLessons], sectionIndex) => {
+                      const isOpen = openSection === section;
+                      const containsSelectedLesson = sectionLessons.some(
+                        (lesson) => lesson.id === selectedLesson.id
+                      );
+                      const panelId = `recording-section-${sectionIndex}`;
 
-                    return (
-                      <section
-                        key={section}
-                        className={[
-                          "overflow-hidden rounded-xl border bg-white transition",
-                          isOpen
-                            ? "border-emerald-800/25 shadow-sm"
-                            : "border-stone-200/80",
-                        ].join(" ")}
-                      >
-                        <h3>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setOpenSection((current) =>
-                                current === section ? null : section
-                              )
-                            }
-                            aria-expanded={isOpen}
-                            aria-controls={panelId}
-                            className={[
-                              "flex w-full items-center justify-between gap-4 p-4 text-start font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-800",
-                              isOpen
-                                ? "bg-emerald-50 text-emerald-950"
-                                : containsSelectedLesson
-                                  ? "bg-stone-50 text-stone-950"
-                                  : "text-stone-800 hover:bg-stone-50",
-                            ].join(" ")}
-                          >
-                            <span className="flex min-w-0 items-center gap-2">
-                              <ChevronDown
-                                className={[
-                                  "h-5 w-5 shrink-0 transition-transform",
-                                  isOpen ? "rotate-180" : "",
-                                ].join(" ")}
-                                aria-hidden="true"
-                              />
-                              <span className="leading-7">{section}</span>
-                            </span>
-                            <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-800 shadow-sm">
-                              {sectionLessons.length}{" "}
-                              {sectionLessons.length === 1 ? "درس" : "دروس"}
-                            </span>
-                          </button>
-                        </h3>
-
-                        {isOpen ? (
-                          <div
-                            id={panelId}
-                            className="space-y-2 border-t border-stone-100 p-2"
-                          >
-                            {sectionLessons.map((lesson, sectionLessonIndex) => {
-                              const isActive = lesson.id === selectedLesson.id;
-                              const isActivePlaying = isActive && isPlaying;
-
-                              return (
-                                <button
-                                  key={lesson.id}
-                                  type="button"
-                                  onClick={() => selectLesson(lesson)}
-                                  aria-current={isActive ? "true" : undefined}
+                      return (
+                        <section
+                          key={section}
+                          className={[
+                            "overflow-hidden rounded-xl border bg-white transition",
+                            isOpen
+                              ? "border-emerald-800/25 shadow-sm"
+                              : "border-stone-200/80",
+                          ].join(" ")}
+                        >
+                          <h3>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setOpenSection((current) =>
+                                  current === section ? null : section
+                                )
+                              }
+                              aria-expanded={isOpen}
+                              aria-controls={panelId}
+                              className={[
+                                "flex w-full items-center justify-between gap-4 p-4 text-start font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-800",
+                                isOpen
+                                  ? "bg-emerald-50 text-emerald-950"
+                                  : containsSelectedLesson
+                                    ? "bg-stone-50 text-stone-950"
+                                    : "text-stone-800 hover:bg-stone-50",
+                              ].join(" ")}
+                            >
+                              <span className="flex min-w-0 items-center gap-2">
+                                <ChevronDown
                                   className={[
-                                    "relative flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-right transition focus:outline-none focus:ring-2 focus:ring-emerald-800",
-                                    isActive
-                                      ? "border-emerald-800/35 bg-emerald-50 text-emerald-950 shadow-sm"
-                                      : "border-stone-200/70 bg-white text-stone-700 hover:border-emerald-800/20 hover:bg-stone-50",
+                                    "h-5 w-5 shrink-0 transition-transform",
+                                    isOpen ? "rotate-180" : "",
                                   ].join(" ")}
-                                >
-                                  <span
+                                  aria-hidden="true"
+                                />
+                                <span className="leading-7">{section}</span>
+                              </span>
+                              <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-800 shadow-sm">
+                                {sectionLessons.length}{" "}
+                                {sectionLessons.length === 1 ? "درس" : "دروس"}
+                              </span>
+                            </button>
+                          </h3>
+
+                          {isOpen ? (
+                            <div
+                              id={panelId}
+                              className="space-y-2 border-t border-stone-100 p-2"
+                            >
+                              {sectionLessons.map((lesson, sectionLessonIndex) => {
+                                const isActive = lesson.id === selectedLesson.id;
+                                const isActivePlaying = isActive && isPlaying;
+
+                                return (
+                                  <button
+                                    key={lesson.id}
+                                    type="button"
+                                    onClick={() => selectLesson(lesson)}
+                                    aria-current={isActive ? "true" : undefined}
                                     className={[
-                                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
+                                      "relative flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-right transition focus:outline-none focus:ring-2 focus:ring-emerald-800",
                                       isActive
-                                        ? "border-emerald-900 bg-emerald-900 text-amber-50"
-                                        : "border-[#e7dac0] bg-[#fbf7ee] text-stone-600",
+                                        ? "border-emerald-800/35 bg-emerald-50 text-emerald-950 shadow-sm"
+                                        : "border-stone-200/70 bg-white text-stone-700 hover:border-emerald-800/20 hover:bg-stone-50",
                                     ].join(" ")}
                                   >
-                                    {sectionLessonIndex + 1}
-                                  </span>
-                                  <span className="min-w-0 flex-1">
-                                    <span className="block text-base font-bold leading-7">
-                                      الدرس {sectionLessonIndex + 1}
+                                    <span
+                                      className={[
+                                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
+                                        isActive
+                                          ? "border-emerald-900 bg-emerald-900 text-amber-50"
+                                          : "border-[#e7dac0] bg-[#fbf7ee] text-stone-600",
+                                      ].join(" ")}
+                                    >
+                                      {sectionLessonIndex + 1}
                                     </span>
-                                    {isActivePlaying || lesson.duration ? (
-                                      <span className="mt-0.5 block text-sm font-semibold text-stone-500">
-                                        {isActivePlaying
-                                          ? "قيد التشغيل"
-                                          : lesson.duration}
+                                    <span className="min-w-0 flex-1">
+                                      <span className="block text-base font-bold leading-7">
+                                        الدرس {sectionLessonIndex + 1}
                                       </span>
-                                    ) : null}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        ) : null}
-                      </section>
-                    );
-                  }
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="mb-3 border-b border-[#eadfc8] pb-3">
-                <p className="text-sm font-bold text-amber-700">فهرس التسجيلات</p>
-                <h2 className="mt-1 text-xl font-bold leading-8 text-stone-950">
-                  الدروس
-                </h2>
-              </div>
+                                      {isActivePlaying || lesson.duration ? (
+                                        <span className="mt-0.5 block text-sm font-semibold text-stone-500">
+                                          {isActivePlaying
+                                            ? "قيد التشغيل"
+                                            : lesson.duration}
+                                        </span>
+                                      ) : null}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          ) : null}
+                        </section>
+                      );
+                    }
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-3 border-b border-[#eadfc8] pb-3">
+                  <p className="text-sm font-bold text-amber-700">فهرس التسجيلات</p>
+                  <h2 className="mt-1 text-xl font-bold leading-8 text-stone-950">
+                    الدروس
+                  </h2>
+                </div>
 
-              <div className="lesson-scroll max-h-[360px] space-y-2 overflow-y-auto pl-1 pr-0.5 xl:max-h-[450px]">
-                {lessons.map((lesson, index) => {
-                  const isActive = lesson.id === selectedLesson.id;
-                  const isActivePlaying = isActive && isPlaying;
+                <div className="lesson-scroll max-h-[360px] space-y-2 overflow-y-auto pl-1 pr-0.5 xl:max-h-[450px]">
+                  {lessons.map((lesson, index) => {
+                    const isActive = lesson.id === selectedLesson.id;
+                    const isActivePlaying = isActive && isPlaying;
 
-                  return (
-                    <button
-                      key={lesson.id}
-                      type="button"
-                      onClick={() => selectLesson(lesson)}
-                      aria-current={isActive ? "true" : undefined}
-                      className={[
-                        "relative flex w-full items-center gap-3 rounded-md border px-3 py-2.5 text-right transition focus:outline-none focus:ring-2 focus:ring-emerald-800",
-                        isActive
-                          ? "border-emerald-800/45 bg-emerald-50 text-emerald-950 shadow-sm"
-                          : "border-[#eee5d4] bg-white text-stone-700 hover:border-[#d8c59d] hover:bg-[#fffaf0]",
-                      ].join(" ")}
-                    >
-                      {isActive ? (
-                        <span className="absolute right-0 top-3 h-7 w-1 rounded-l-full bg-amber-500" />
-                      ) : null}
-                      <span
+                    return (
+                      <button
+                        key={lesson.id}
+                        type="button"
+                        onClick={() => selectLesson(lesson)}
+                        aria-current={isActive ? "true" : undefined}
                         className={[
-                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
+                          "relative flex w-full items-center gap-3 rounded-md border px-3 py-2.5 text-right transition focus:outline-none focus:ring-2 focus:ring-emerald-800",
                           isActive
-                            ? "border-emerald-900 bg-emerald-900 text-amber-50"
-                            : "border-[#e7dac0] bg-[#fbf7ee] text-stone-600",
+                            ? "border-emerald-800/45 bg-emerald-50 text-emerald-950 shadow-sm"
+                            : "border-[#eee5d4] bg-white text-stone-700 hover:border-[#d8c59d] hover:bg-[#fffaf0]",
                         ].join(" ")}
                       >
-                        {getLessonNumber(lesson, index)}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-base font-bold leading-7">
-                          {lesson.title}
+                        {isActive ? (
+                          <span className="absolute right-0 top-3 h-7 w-1 rounded-l-full bg-amber-500" />
+                        ) : null}
+                        <span
+                          className={[
+                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
+                            isActive
+                              ? "border-emerald-900 bg-emerald-900 text-amber-50"
+                              : "border-[#e7dac0] bg-[#fbf7ee] text-stone-600",
+                          ].join(" ")}
+                        >
+                          {getLessonNumber(lesson, index)}
                         </span>
-                        <span className="mt-0.5 block text-sm font-semibold text-stone-600">
-                          {isActivePlaying
-                            ? "قيد التشغيل"
-                            : lesson.duration ?? lesson.section ?? "تسجيل صوتي"}
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-base font-bold leading-7">
+                            {lesson.title}
+                          </span>
+                          <span className="mt-0.5 block text-sm font-semibold text-stone-600">
+                            {isActivePlaying
+                              ? "قيد التشغيل"
+                              : lesson.duration ?? lesson.section ?? "تسجيل صوتي"}
+                          </span>
                         </span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </aside>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </aside>
+        ) : null}
       </div>
 
       <audio ref={audioRef} preload="metadata" />
