@@ -5,7 +5,7 @@ import { createPageMetadata } from "@/lib/site";
 export const metadata = createPageMetadata({
   title: "الشيوخ",
   description:
-    "تصفح صفحات الشيوخ ودروسهم وسلاسلهم الصوتية وكتبهم ومقالاتهم في سبيل الرشاد.",
+    "تصفح صفحات الشيوخ ودروسهم وسلاسلهم الصوتية وكتبهم ومقالاتهم في سبيل الرشاد",
   path: "/teachers",
 });
 

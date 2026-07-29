@@ -85,7 +85,9 @@ export function RecordingCoursePlayer({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [errorMessage, setErrorMessage] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [openSection, setOpenSection] = useState<string | null>(null);
+  const [openSection, setOpenSection] = useState<string | null>(
+    () => firstLesson?.section || "الدروس"
+  );
   const [arePlayerControlsVisible, setArePlayerControlsVisible] = useState(true);
   const [showsMainCourseCover, setShowsMainCourseCover] = useState(
     book.slug === "sahih-al-bukhari" && !initialLessonId
@@ -388,9 +390,6 @@ export function RecordingCoursePlayer({
     setDuration(0);
     setSelectedLesson(lesson);
     setShowsMainCourseCover(false);
-    if (usesSectionedLessonIndex) {
-      setOpenSection(lesson.section || "الدروس");
-    }
     updateUrl(lesson);
     loadPlayableSource(lesson.audioUrl, lesson.startAt ?? 0, shouldPlay);
   }

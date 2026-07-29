@@ -43,7 +43,7 @@ function VideoBookPlaylist({
 
   const [currentLesson, setCurrentLesson] = useState<Lesson>(initialLesson);
   const [openSection, setOpenSection] = useState<string | null>(
-    initialLesson.section ?? null
+    () => initialLesson.section || "الدروس"
   );
   const currentIndex = book.lessons.findIndex(
     (lesson) => lesson.id === currentLesson.id
@@ -65,7 +65,6 @@ function VideoBookPlaylist({
     if (!lesson) return;
 
     setCurrentLesson(lesson);
-    setOpenSection(lesson.section ?? null);
 
     const nextUrl = new URL(window.location.href);
     nextUrl.searchParams.set("lesson", lesson.id);
