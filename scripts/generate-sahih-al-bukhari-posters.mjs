@@ -174,6 +174,7 @@ async function renderPng(svg) {
 
 async function main() {
   const ranges = JSON.parse(await readFile(mappingPath, "utf8"));
+  const lessonCount = Math.max(...ranges.map((range) => range.end));
   const assignedLessons = new Set();
 
   for (const range of ranges) {
@@ -181,7 +182,7 @@ async function main() {
       !Number.isInteger(range.start) ||
       !Number.isInteger(range.end) ||
       range.start < 1 ||
-      range.end > 148 ||
+      range.end > lessonCount ||
       range.start > range.end ||
       !Array.isArray(range.titles) ||
       range.titles.length < 1
@@ -197,8 +198,8 @@ async function main() {
     }
   }
 
-  if (assignedLessons.size !== 148) {
-    const missing = Array.from({ length: 148 }, (_, index) => index + 1).filter(
+  if (assignedLessons.size !== lessonCount) {
+    const missing = Array.from({ length: lessonCount }, (_, index) => index + 1).filter(
       (lesson) => !assignedLessons.has(lesson)
     );
     throw new Error(`Poster mapping is incomplete. Missing: ${missing.join(", ")}`);
@@ -220,7 +221,7 @@ async function main() {
     }
   }
 
-  console.log(`Generated 149 posters in ${outputDirectory}`);
+  console.log(`Generated ${lessonCount + 1} posters in ${outputDirectory}`);
 }
 
 await main();

@@ -1,0 +1,35 @@
+{
+  "drive_root": "sabeel-drive:Sabeel Uploads",
+  "r2_remote": "sabeel-r2",
+  "r2_bucket": "sabeel-alrashad-media",
+  "public_media_base_url": "https://media.sabeelalrashad.com",
+  "courses": {
+    "sahih-al-bukhari": {
+      "enabled": true,
+      "drive_folder": "Sahih Bukhari",
+      "kind": "generated-sections",
+      "course_slug": "sahih-al-bukhari",
+      "data_file": "src/data/sahih-al-bukhari.ts",
+      "sections_file": "data/sahih-al-bukhari-sections.json",
+      "r2_prefix": "asaad-al-zaatari/sahih-al-bukhari",
+      "poster_mode": "bukhari-generator",
+      "poster_dir": "public/images/courses/sahih-al-bukhari",
+      "section_overrides": {
+        "149": "كتاب الشهادات"
+      },
+      "library_slug_reference": "sahihAlBukhariBook.slug"
+    },
+    "raed-buyu": {
+      "enabled": true,
+      "drive_folder": "Kitab al-Buyu min Bulugh al-Maram",
+      "kind": "library-array",
+      "course_slug": "raed-buyu",
+      "lesson_id_prefix": "buyu",
+      "library_file": "data/library.ts",
+      "r2_prefix": "raed-al-mahdawi/al-buyu-min-bulugh-al-maram",
+      "poster_mode": "drive-required",
+      "poster_dir": "public/images/courses/al-buyu-min-bulugh-al-maram",
+      "poster_url_prefix": "/images/courses/al-buyu-min-bulugh-al-maram"
+    }
+  }
+}
