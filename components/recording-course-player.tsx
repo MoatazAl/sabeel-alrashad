@@ -99,6 +99,22 @@ export function RecordingCoursePlayer({
     [lessons]
   );
 
+  const sectionSummaries = useMemo(() => {
+    let cumulativeCount = 0;
+
+    return Object.entries(groupedLessons).map(
+      ([section, sectionLessons]) => {
+        cumulativeCount += sectionLessons.length;
+
+        return {
+          section,
+          sectionLessons,
+          cumulativeCount,
+        };
+      }
+    );
+  }, [groupedLessons]);
+
   const selectedIndex = selectedLesson
     ? lessons.findIndex((lesson) => lesson.id === selectedLesson.id)
     : -1;
@@ -796,14 +812,22 @@ export function RecordingCoursePlayer({
                   <h2 className="text-xl font-bold leading-8 text-stone-950">
                     قائمة الدروس
                   </h2>
-                  <p className="mt-1 text-sm leading-6 text-stone-500">
-                    اختر كتاباً لعرض دروسه، أو انتقل بالتتابع من الأزرار.
-                  </p>
+                  <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm leading-6 text-stone-500">
+                      اختر كتاباً لعرض دروسه، أو انتقل بالتتابع من الأزرار
+                    </p>
+                    <span className="rounded-full bg-emerald-900 px-3 py-1 text-xs font-bold text-white">
+                      {lessons.length} درسًا إجمالًا
+                    </span>
+                  </div>
                 </div>
 
                 <div className="lesson-scroll max-h-[560px] space-y-3 overflow-y-auto pl-1 pr-0.5 xl:max-h-[600px]">
-                  {Object.entries(groupedLessons).map(
-                    ([section, sectionLessons], sectionIndex) => {
+                  {sectionSummaries.map(
+                    (
+                      { section, sectionLessons, cumulativeCount },
+                      sectionIndex
+                    ) => {
                       const isOpen = openSection === section;
                       const containsSelectedLesson = sectionLessons.some(
                         (lesson) => lesson.id === selectedLesson.id
@@ -849,9 +873,14 @@ export function RecordingCoursePlayer({
                                 />
                                 <span className="leading-7">{section}</span>
                               </span>
-                              <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-800 shadow-sm">
-                                {sectionLessons.length}{" "}
-                                {sectionLessons.length === 1 ? "درس" : "دروس"}
+                              <span className="flex shrink-0 items-center gap-1.5">
+                                <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-800 shadow-sm">
+                                  {sectionLessons.length}{" "}
+                                  {sectionLessons.length === 1 ? "درس" : "دروس"}
+                                </span>
+                                <span className="rounded-full bg-emerald-900 px-2.5 py-1 text-xs font-bold text-white shadow-sm">
+                                  حتى {cumulativeCount}
+                                </span>
                               </span>
                             </button>
                           </h3>
