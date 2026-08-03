@@ -99,21 +99,6 @@ export function RecordingCoursePlayer({
     [lessons]
   );
 
-  const sectionSummaries = useMemo(() => {
-    let cumulativeCount = 0;
-
-    return Object.entries(groupedLessons).map(
-      ([section, sectionLessons]) => {
-        cumulativeCount += sectionLessons.length;
-
-        return {
-          section,
-          sectionLessons,
-          cumulativeCount,
-        };
-      }
-    );
-  }, [groupedLessons]);
 
   const selectedIndex = selectedLesson
     ? lessons.findIndex((lesson) => lesson.id === selectedLesson.id)
@@ -823,11 +808,8 @@ export function RecordingCoursePlayer({
                 </div>
 
                 <div className="lesson-scroll max-h-[560px] space-y-3 overflow-y-auto pl-1 pr-0.5 xl:max-h-[600px]">
-                  {sectionSummaries.map(
-                    (
-                      { section, sectionLessons, cumulativeCount },
-                      sectionIndex
-                    ) => {
+                  {Object.entries(groupedLessons).map(
+                    ([section, sectionLessons], sectionIndex) => {
                       const isOpen = openSection === section;
                       const containsSelectedLesson = sectionLessons.some(
                         (lesson) => lesson.id === selectedLesson.id
@@ -873,14 +855,9 @@ export function RecordingCoursePlayer({
                                 />
                                 <span className="leading-7">{section}</span>
                               </span>
-                              <span className="flex shrink-0 items-center gap-1.5">
-                                <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-800 shadow-sm">
-                                  {sectionLessons.length}{" "}
-                                  {sectionLessons.length === 1 ? "درس" : "دروس"}
-                                </span>
-                                <span className="rounded-full bg-emerald-900 px-2.5 py-1 text-xs font-bold text-white shadow-sm">
-                                  حتى {cumulativeCount}
-                                </span>
+                              <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-emerald-800 shadow-sm">
+                                {sectionLessons.length}{" "}
+                                {sectionLessons.length === 1 ? "درس" : "دروس"}
                               </span>
                             </button>
                           </h3>
