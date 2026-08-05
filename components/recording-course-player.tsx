@@ -561,7 +561,12 @@ export function RecordingCoursePlayer({
               "relative overflow-hidden bg-stone-950 text-white shadow-[0_22px_70px_rgba(57,44,24,0.14)]",
               isFullscreen
                 ? "h-screen w-screen rounded-none border-0 shadow-none"
-                : "aspect-video min-h-[300px] rounded-lg border border-[#d8c59d] sm:min-h-[430px]",
+                : [
+                    "aspect-video rounded-lg border border-[#d8c59d]",
+                    playerOnly
+                      ? "min-h-0"
+                      : "min-h-[300px] sm:min-h-[430px]",
+                  ].join(" "),
             ].join(" ")}
           >
             {coverImage ? (

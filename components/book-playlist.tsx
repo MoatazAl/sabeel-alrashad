@@ -72,7 +72,7 @@ function VideoBookPlaylist({
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="min-w-0 rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
         {currentLesson.audioUrl ? (
           <RecordingCoursePlayer
