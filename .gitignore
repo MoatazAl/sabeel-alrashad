@@ -45,3 +45,7 @@ next-env.d.ts
 .automation-work/
 
 .automation-venv/
+
+# Python cache
+__pycache__/
+*.py[cod]

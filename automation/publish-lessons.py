@@ -88,21 +88,48 @@ def list_drive_files(path: str) -> list[dict[str, Any]]:
 
 
 def remote_stat(path: str) -> dict[str, Any] | None:
+    """
+    Return the exact R2 object metadata, or None when it does not exist.
+
+    Listing the parent directory is more reliable than using
+    `lsjson --stat` on an S3/R2 object path, which may represent a missing
+    object as an empty directory.
+    """
+    if "/" not in path:
+        raise PublishError(f"Invalid R2 object path: {path}")
+
+    parent, filename = path.rsplit("/", 1)
+
     result = run(
-        ["rclone", "lsjson", path, "--stat", "--s3-no-check-bucket"],
+        [
+            "rclone",
+            "lsjson",
+            parent,
+            "--files-only",
+            "--s3-no-check-bucket",
+        ],
         check=False,
     )
+
     if result.returncode != 0:
         return None
 
     try:
-        value = json.loads(result.stdout or "{}")
+        objects = json.loads(result.stdout or "[]")
     except json.JSONDecodeError as error:
         raise PublishError(
-            f"Invalid R2 stat response for {path}: {error}"
+            f"Invalid R2 listing response for {parent}: {error}"
         ) from error
 
-    return value if isinstance(value, dict) else None
+    if not isinstance(objects, list):
+        return None
+
+    for item in objects:
+        object_name = item.get("Name") or item.get("Path")
+        if object_name == filename:
+            return item
+
+    return None
 
 
 def find_audio(files, lesson_number: int):
