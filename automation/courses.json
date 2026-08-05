@@ -21,7 +21,7 @@
     },
     "raed-buyu": {
       "enabled": true,
-      "drive_folder": "Kitab al-Buyu min Bulugh al-Maram",
+      "drive_folder": "al-buyu-min-bulugh-al-maram",
       "kind": "library-array",
       "course_slug": "raed-buyu",
       "lesson_id_prefix": "buyu",

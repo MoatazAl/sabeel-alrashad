@@ -612,7 +612,7 @@ const rawBooks: BookSource[] = [
     playlistThumbnailUrl:
       "https://i.ytimg.com/vi/w5fMF_fxiiE/hqdefault.jpg",
     status: "ongoing",
-    updatedAt: "2026-07-25",
+    updatedAt: "2026-08-05",
     lessons: [
       { id: "buyu-1", title: "الدرس 1", youtubeUrl: "https://youtu.be/w5fMF_fxiiE" },
       { id: "buyu-2", title: "الدرس 2", youtubeUrl: "https://youtu.be/GNzBLSWvXak" },
@@ -634,6 +634,15 @@ const rawBooks: BookSource[] = [
           "https://media.sabeelalrashad.com/raed-al-mahdawi/al-buyu-min-bulugh-al-maram/013.m4a",
         image: "/images/courses/al-buyu-min-bulugh-al-maram/013.png",
       },
+        {
+            id: "buyu-14",
+            number: 14,
+            title: "الدرس 14",
+            audioUrl: "https://media.sabeelalrashad.com/raed-al-mahdawi/al-buyu-min-bulugh-al-maram/014.m4a",
+            image: "/images/courses/al-buyu-min-bulugh-al-maram/014.png",
+            coverImage: "/images/courses/al-buyu-min-bulugh-al-maram/014.png",
+            startAt: 0,
+          }
     ],
   },
   {
