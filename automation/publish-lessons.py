@@ -54,6 +54,21 @@ def parse_audio_name(name: str) -> dict[str, Any] | None:
         return None
 
     stem = normalize(Path(name).stem).strip()
+
+    # Preferred format:
+    # GLOBAL_NUMBER__LESSON_IN_SECTION__SECTION
+    # Example: 151__01__كتاب الصلح.m4a
+    match = re.fullmatch(r"(\d+)__(\d+)__(.+)", stem)
+    if match:
+        return {
+            "number": int(match.group(1)),
+            "section_lesson": int(match.group(2)),
+            "section": match.group(3).strip(),
+            "extension": suffix,
+        }
+
+    # Also keep support for the older order:
+    # GLOBAL_NUMBER__SECTION__LESSON_IN_SECTION
     match = re.fullmatch(r"(\d+)__(.+?)__(\d+)", stem)
     if match:
         return {

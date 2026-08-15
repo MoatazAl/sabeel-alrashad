@@ -2,7 +2,7 @@ import sectionRanges from "../../data/sahih-al-bukhari-sections.json";
 
 export const MEDIA_BASE_URL = "https://media.sabeelalrashad.com";
 
-const LESSON_COUNT = 149;
+const LESSON_COUNT = 151;
 const AAC_LESSONS = new Set([18, 41, 76, 80]);
 
 function getLessonSection(lessonNumber: number) {

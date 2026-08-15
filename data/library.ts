@@ -186,7 +186,7 @@ const rawBooks: BookSource[] = [
     sheikhSlug: sahihAlBukhariBook.sheikhSlug,
     category: sahihAlBukhariBook.category,
     status: "ongoing",
-    updatedAt: "2026-08-01",
+    updatedAt: "2026-08-15",
     type: "audio",
     source: "r2",
     title: sahihAlBukhariBook.title,
@@ -612,7 +612,7 @@ const rawBooks: BookSource[] = [
     playlistThumbnailUrl:
       "https://i.ytimg.com/vi/w5fMF_fxiiE/hqdefault.jpg",
     status: "ongoing",
-    updatedAt: "2026-08-05",
+    updatedAt: "2026-08-15",
     lessons: [
       { id: "buyu-1", title: "الدرس 1", youtubeUrl: "https://youtu.be/w5fMF_fxiiE" },
       { id: "buyu-2", title: "الدرس 2", youtubeUrl: "https://youtu.be/GNzBLSWvXak" },
@@ -641,6 +641,15 @@ const rawBooks: BookSource[] = [
             audioUrl: "https://media.sabeelalrashad.com/raed-al-mahdawi/al-buyu-min-bulugh-al-maram/014.m4a",
             image: "/images/courses/al-buyu-min-bulugh-al-maram/014.png",
             coverImage: "/images/courses/al-buyu-min-bulugh-al-maram/014.png",
+            startAt: 0,
+          },
+        {
+            id: "buyu-15",
+            number: 15,
+            title: "الدرس 15",
+            audioUrl: "https://media.sabeelalrashad.com/raed-al-mahdawi/al-buyu-min-bulugh-al-maram/015.m4a",
+            image: "/images/courses/al-buyu-min-bulugh-al-maram/015.png",
+            coverImage: "/images/courses/al-buyu-min-bulugh-al-maram/015.png",
             startAt: 0,
           }
     ],
