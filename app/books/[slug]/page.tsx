@@ -63,7 +63,7 @@ export default async function BookPage({
     <main>
       <JsonLd data={createCourseJsonLd(book)} />
       <section className="border-b border-stone-200 bg-[#fbfaf7]">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+        <div className="mx-auto max-w-7xl px-3 py-6 sm:px-6 sm:py-10 lg:py-14">
           <div
             className={
               book.source === "youtube" && courseCoverSources.length > 0
@@ -80,10 +80,10 @@ export default async function BookPage({
                   {book.status === "ongoing" ? "سلسلة مستمرة" : "سلسلة مكتملة"}
                 </span>
               </div>
-              <p className="mt-5 text-4xl font-bold leading-tight text-stone-950 md:text-5xl">
+              <p className="mt-4 text-3xl font-bold leading-tight text-stone-950 sm:mt-5 sm:text-4xl md:text-5xl">
                 {book.title}
               </p>
-              <p className="mt-4 text-lg leading-9 text-stone-600">
+              <p className="mt-3 text-base leading-8 text-stone-600 sm:mt-4 sm:text-lg sm:leading-9">
                 الشارح: {book.explainerName} · المؤلف: {book.authorName}
               </p>
             </div>
@@ -107,7 +107,7 @@ export default async function BookPage({
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
+      <section className="mx-auto max-w-7xl min-w-0 px-3 py-6 sm:px-6 sm:py-10 lg:py-14">
         <BookPlaylist book={book} initialLessonId={lesson} />
       </section>
 
