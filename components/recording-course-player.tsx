@@ -425,6 +425,17 @@ export function RecordingCoursePlayer({
     setShowsMainCourseCover(false);
     updateUrl(lesson);
     loadPlayableSource(lesson.audioUrl, lesson.startAt ?? 0, shouldPlay);
+
+    if (window.matchMedia("(max-width: 639px)").matches) {
+      window.requestAnimationFrame(() => {
+        playerRef.current?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "auto"
+            : "smooth",
+          block: "start",
+        });
+      });
+    }
   }
 
   function togglePlayback() {
@@ -590,7 +601,7 @@ export function RecordingCoursePlayer({
               }
             }}
             className={[
-              "relative w-full max-w-full overflow-hidden bg-stone-950 text-white shadow-[0_22px_70px_rgba(57,44,24,0.14)]",
+              "relative w-full max-w-full scroll-mt-28 overflow-hidden bg-stone-950 text-white shadow-[0_22px_70px_rgba(57,44,24,0.14)]",
               isFullscreen
                 ? "h-screen w-screen rounded-none border-0 shadow-none"
                 : [
@@ -1036,7 +1047,11 @@ export function RecordingCoursePlayer({
         ) : null}
       </div>
 
-      <audio ref={audioRef} preload="metadata" />
+      <audio
+        ref={audioRef}
+        src={selectedLesson.audioUrl}
+        preload="metadata"
+      />
     </div>
   );
 }
