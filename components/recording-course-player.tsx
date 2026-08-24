@@ -667,10 +667,10 @@ export function RecordingCoursePlayer({
               data-center-controls
               data-visible={arePlayerControlsVisible ? "true" : "false"}
               className={[
-                "absolute inset-0 z-10 flex items-center justify-center px-4 transition-opacity duration-300",
+                "pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-4 transition-opacity duration-300",
                 arePlayerControlsVisible
                   ? "opacity-100"
-                  : "pointer-events-none opacity-0",
+                  : "opacity-0",
               ].join(" ")}
             >
               <div className="grid grid-cols-[auto_auto_auto] items-center gap-2 sm:gap-5">
@@ -678,7 +678,7 @@ export function RecordingCoursePlayer({
                   type="button"
                   onClick={skipForward}
                   aria-label="تقديم 10 ثوانٍ"
-                  className="inline-flex h-10 min-w-11 items-center justify-center gap-0.5 rounded-full border border-white/25 bg-black/45 px-2 text-xs font-bold text-white shadow-lg backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-14 sm:min-w-16 sm:gap-1 sm:px-3 sm:text-sm"
+                  className="pointer-events-auto inline-flex h-10 min-w-11 items-center justify-center gap-0.5 rounded-full border border-white/25 bg-black/45 px-2 text-xs font-bold text-white shadow-lg backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-14 sm:min-w-16 sm:gap-1 sm:px-3 sm:text-sm"
                 >
                   <span>10</span>
                   <RotateCw className="h-4 w-4" aria-hidden="true" />
@@ -687,7 +687,7 @@ export function RecordingCoursePlayer({
                   type="button"
                   onClick={togglePlayback}
                   aria-label={isPlaying ? "إيقاف" : "تشغيل"}
-                  className="flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-black/60 text-white shadow-2xl shadow-black/40 backdrop-blur transition hover:scale-105 hover:bg-emerald-950/80 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-24 sm:w-24"
+                  className="pointer-events-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-black/60 text-white shadow-2xl shadow-black/40 backdrop-blur transition hover:scale-105 hover:bg-emerald-950/80 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-24 sm:w-24"
                 >
                   {isPlaying ? (
                     <Pause className="h-7 w-7 sm:h-9 sm:w-9" aria-hidden="true" fill="currentColor" />
@@ -699,7 +699,7 @@ export function RecordingCoursePlayer({
                   type="button"
                   onClick={skipBackward}
                   aria-label="رجوع 10 ثوانٍ"
-                  className="inline-flex h-10 min-w-11 items-center justify-center gap-0.5 rounded-full border border-white/25 bg-black/45 px-2 text-xs font-bold text-white shadow-lg backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-14 sm:min-w-16 sm:gap-1 sm:px-3 sm:text-sm"
+                  className="pointer-events-auto inline-flex h-10 min-w-11 items-center justify-center gap-0.5 rounded-full border border-white/25 bg-black/45 px-2 text-xs font-bold text-white shadow-lg backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-14 sm:min-w-16 sm:gap-1 sm:px-3 sm:text-sm"
                 >
                   <RotateCcw className="h-4 w-4" aria-hidden="true" />
                   <span>10</span>
