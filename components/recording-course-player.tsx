@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import {
+  Check,
   ChevronDown,
+  Copy,
   Maximize2,
   Minimize2,
   Pause,
@@ -34,6 +36,8 @@ type RecordingCoursePlayerProps = {
 
 const playbackRates = [0.75, 1, 1.25, 1.5, 1.75, 2] as const;
 
+type ShareStatus = "idle" | "copied" | "error";
+
 function formatTime(value: number) {
   if (!Number.isFinite(value) || value <= 0) return "0:00";
 
@@ -51,6 +55,25 @@ function formatTime(value: number) {
 
 function getLessonNumber(lesson: Lesson, index: number) {
   return lesson.number ?? index + 1;
+}
+
+function copyWithSelectionFallback(value: string) {
+  const textArea = document.createElement("textarea");
+  textArea.value = value;
+  textArea.setAttribute("readonly", "");
+  textArea.style.position = "fixed";
+  textArea.style.inset = "0";
+  textArea.style.opacity = "0";
+  document.body.appendChild(textArea);
+
+  try {
+    textArea.focus();
+    textArea.select();
+    textArea.setSelectionRange(0, value.length);
+    return document.execCommand("copy");
+  } finally {
+    document.body.removeChild(textArea);
+  }
 }
 
 export function RecordingCoursePlayer({
@@ -90,7 +113,8 @@ export function RecordingCoursePlayer({
     () => firstLesson?.section || "الدروس"
   );
   const [arePlayerControlsVisible, setArePlayerControlsVisible] = useState(true);
-  const [shareMessage, setShareMessage] = useState("");
+  const [shareStatus, setShareStatus] = useState<ShareStatus>("idle");
+  const [supportsNativeShare, setSupportsNativeShare] = useState(false);
   const [showsMainCourseCover, setShowsMainCourseCover] = useState(
     book.slug === "sahih-al-bukhari" && !initialLessonId
   );
@@ -129,6 +153,8 @@ export function RecordingCoursePlayer({
   const selectedLessonTitle = usesSectionedLessonIndex
     ? `الدرس ${selectedLessonNumber}`
     : selectedLesson?.title;
+  const displayedDuration =
+    duration > 0 ? formatTime(duration) : selectedLesson?.duration;
   const coverImage = showsMainCourseCover
     ? book.coverImage ?? book.cover ?? ""
     : selectedLesson?.coverImage ??
@@ -248,6 +274,10 @@ export function RecordingCoursePlayer({
     return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
+  }, []);
+
+  useEffect(() => {
+    setSupportsNativeShare(typeof navigator.share === "function");
   }, []);
 
   useEffect(() => {
@@ -403,13 +433,22 @@ export function RecordingCoursePlayer({
     }
 
     try {
-      await navigator.clipboard.writeText(url);
-      setShareMessage("تم نسخ رابط هذا الدرس");
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else if (!copyWithSelectionFallback(url)) {
+        throw new Error("Clipboard copy failed");
+      }
+
+      setShareStatus("copied");
     } catch {
-      setShareMessage("تعذر النسخ؛ انسخ الرابط من شريط العنوان");
+      try {
+        setShareStatus(copyWithSelectionFallback(url) ? "copied" : "error");
+      } catch {
+        setShareStatus("error");
+      }
     }
 
-    window.setTimeout(() => setShareMessage(""), 2600);
+    window.setTimeout(() => setShareStatus("idle"), 2600);
   }
 
   function selectLesson(lesson: Lesson, shouldPlay = true) {
@@ -659,19 +698,39 @@ export function RecordingCoursePlayer({
                   <button
                     type="button"
                     onClick={shareSelectedLesson}
-                    aria-label="مشاركة هذا الدرس"
-                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-white/25 bg-black/45 px-2.5 text-xs font-bold text-white backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-9 sm:px-3"
+                    aria-label={
+                      supportsNativeShare
+                        ? "مشاركة هذا الدرس"
+                        : "نسخ رابط هذا الدرس"
+                    }
+                    className={[
+                      "inline-flex h-8 items-center justify-center gap-1.5 rounded-full border px-2.5 text-xs font-bold text-white backdrop-blur transition focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-9 sm:px-3",
+                      shareStatus === "copied"
+                        ? "border-emerald-300/70 bg-emerald-800/95"
+                        : shareStatus === "error"
+                          ? "border-red-300/70 bg-red-900/95"
+                          : "border-white/25 bg-black/45 hover:bg-black/65",
+                    ].join(" ")}
                   >
-                    <Share2 className="h-4 w-4" aria-hidden="true" />
-                    <span>مشاركة</span>
+                    {shareStatus === "copied" ? (
+                      <Check className="h-4 w-4" aria-hidden="true" />
+                    ) : supportsNativeShare ? (
+                      <Share2 className="h-4 w-4" aria-hidden="true" />
+                    ) : (
+                      <Copy className="h-4 w-4" aria-hidden="true" />
+                    )}
+                    <span aria-live="polite">
+                      {shareStatus === "copied"
+                        ? "تم نسخ الرابط"
+                        : shareStatus === "error"
+                          ? "تعذر النسخ"
+                          : supportsNativeShare
+                            ? "مشاركة"
+                            : "نسخ رابط الدرس"}
+                    </span>
                   </button>
                 </div>
               </div>
-              {shareMessage ? (
-                <p className="mt-2 w-fit rounded-full bg-emerald-900/90 px-3 py-1 text-xs font-bold text-white shadow-lg" aria-live="polite">
-                  {shareMessage}
-                </p>
-              ) : null}
             </div>
 
             <div
@@ -754,7 +813,7 @@ export function RecordingCoursePlayer({
                   dir="ltr"
                   className="shrink-0 text-[11px] font-semibold tabular-nums text-white/85 sm:text-sm"
                 >
-                  {formatTime(currentTime)} / {duration > 0 ? formatTime(duration) : "--:--"}
+                  {formatTime(currentTime)} / {displayedDuration ?? "تحميل المدة…"}
                 </div>
 
                 <div dir="ltr" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
