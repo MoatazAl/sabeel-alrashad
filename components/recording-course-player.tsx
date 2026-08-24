@@ -611,16 +611,53 @@ export function RecordingCoursePlayer({
       >
         <section className="min-w-0 space-y-3 sm:space-y-4">
           {!playerOnly ? (
-            <div className="space-y-1.5 px-0.5 sm:space-y-2 sm:px-0">
-              <p className="text-xs font-bold text-amber-700 sm:text-sm">تسجيل صوتي</p>
+            <div className="flex flex-col gap-3 px-0.5 sm:flex-row sm:items-end sm:justify-between sm:px-0">
+              <div className="space-y-1.5 sm:space-y-2">
+                <p className="text-xs font-bold text-amber-700 sm:text-sm">تسجيل صوتي</p>
 
-              <h1 className="text-2xl font-bold leading-tight text-stone-950 sm:text-3xl">
-                {book.title}
-              </h1>
+                <h1 className="text-2xl font-bold leading-tight text-stone-950 sm:text-3xl">
+                  {book.title}
+                </h1>
 
-              <p className="text-base font-semibold leading-7 text-emerald-950 sm:text-lg sm:leading-8">
-                {selectedLessonTitle}
-              </p>
+                <p className="text-base font-semibold leading-7 text-emerald-950 sm:text-lg sm:leading-8">
+                  {selectedLessonTitle}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={shareSelectedLesson}
+                aria-label={
+                  supportsNativeShare
+                    ? "مشاركة هذا الدرس"
+                    : "نسخ رابط هذا الدرس"
+                }
+                className={[
+                  "inline-flex min-h-10 w-fit items-center justify-center gap-2 self-start rounded-lg border px-3.5 py-2 text-sm font-bold transition focus:outline-none focus:ring-2 focus:ring-emerald-800 focus:ring-offset-2 sm:self-auto",
+                  shareStatus === "copied"
+                    ? "border-emerald-800 bg-emerald-800 text-white"
+                    : shareStatus === "error"
+                      ? "border-red-700 bg-red-50 text-red-800"
+                      : "border-stone-300 bg-white text-stone-800 hover:border-emerald-800 hover:bg-emerald-50 hover:text-emerald-950",
+                ].join(" ")}
+              >
+                {shareStatus === "copied" ? (
+                  <Check className="h-4 w-4" aria-hidden="true" />
+                ) : supportsNativeShare ? (
+                  <Share2 className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <Copy className="h-4 w-4" aria-hidden="true" />
+                )}
+                <span aria-live="polite">
+                  {shareStatus === "copied"
+                    ? "تم نسخ الرابط"
+                    : shareStatus === "error"
+                      ? "تعذر النسخ"
+                      : supportsNativeShare
+                        ? "مشاركة الدرس"
+                        : "نسخ رابط الدرس"}
+                </span>
+              </button>
             </div>
           ) : null}
           <article
@@ -689,47 +726,11 @@ export function RecordingCoursePlayer({
                     {selectedLessonTitle}
                   </h2>
                 </div>
-                <div className="flex shrink-0 items-center gap-1.5">
-                  {selectedLesson.section ? (
-                    <span className="hidden max-w-40 truncate rounded-full border border-white/25 bg-black/35 px-3 py-1 text-sm font-bold text-white backdrop-blur sm:block">
-                      {selectedLesson.section}
-                    </span>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={shareSelectedLesson}
-                    aria-label={
-                      supportsNativeShare
-                        ? "مشاركة هذا الدرس"
-                        : "نسخ رابط هذا الدرس"
-                    }
-                    className={[
-                      "inline-flex h-8 items-center justify-center gap-1.5 rounded-full border px-2.5 text-xs font-bold text-white backdrop-blur transition focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-9 sm:px-3",
-                      shareStatus === "copied"
-                        ? "border-emerald-300/70 bg-emerald-800/95"
-                        : shareStatus === "error"
-                          ? "border-red-300/70 bg-red-900/95"
-                          : "border-white/25 bg-black/45 hover:bg-black/65",
-                    ].join(" ")}
-                  >
-                    {shareStatus === "copied" ? (
-                      <Check className="h-4 w-4" aria-hidden="true" />
-                    ) : supportsNativeShare ? (
-                      <Share2 className="h-4 w-4" aria-hidden="true" />
-                    ) : (
-                      <Copy className="h-4 w-4" aria-hidden="true" />
-                    )}
-                    <span aria-live="polite">
-                      {shareStatus === "copied"
-                        ? "تم نسخ الرابط"
-                        : shareStatus === "error"
-                          ? "تعذر النسخ"
-                          : supportsNativeShare
-                            ? "مشاركة"
-                            : "نسخ رابط الدرس"}
-                    </span>
-                  </button>
-                </div>
+                {selectedLesson.section ? (
+                  <span className="hidden max-w-40 shrink-0 truncate rounded-full border border-white/25 bg-black/35 px-3 py-1 text-sm font-bold text-white backdrop-blur sm:block">
+                    {selectedLesson.section}
+                  </span>
+                ) : null}
               </div>
             </div>
 
@@ -809,11 +810,25 @@ export function RecordingCoursePlayer({
               />
 
               <div className="mt-1.5 flex items-center justify-between gap-2 sm:mt-3 sm:gap-3">
-                <div
-                  dir="ltr"
-                  className="shrink-0 text-[11px] font-semibold tabular-nums text-white/85 sm:text-sm"
-                >
-                  {formatTime(currentTime)} / {displayedDuration ?? "تحميل المدة…"}
+                <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                  <div
+                    dir="ltr"
+                    className="text-[11px] font-semibold tabular-nums text-white/85 sm:text-sm"
+                  >
+                    {formatTime(currentTime)} / {displayedDuration ?? "تحميل المدة…"}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={toggleFullscreen}
+                    aria-label={isFullscreen ? "الخروج من ملء الشاشة" : "ملء الشاشة"}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:bg-black/55 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-10 sm:w-10"
+                  >
+                    {isFullscreen ? (
+                      <Minimize2 className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
+                    ) : (
+                      <Maximize2 className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
+                    )}
+                  </button>
                 </div>
 
                 <div dir="ltr" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
@@ -859,18 +874,6 @@ export function RecordingCoursePlayer({
                       </option>
                     ))}
                   </select>
-                  <button
-                    type="button"
-                    onClick={toggleFullscreen}
-                    aria-label={isFullscreen ? "الخروج من ملء الشاشة" : "ملء الشاشة"}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:bg-black/55 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-10 sm:w-10"
-                  >
-                    {isFullscreen ? (
-                      <Minimize2 className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
-                    ) : (
-                      <Maximize2 className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
-                    )}
-                  </button>
                 </div>
               </div>
             </div>
