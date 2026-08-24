@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Share2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { LessonList } from "@/components/lesson-list";
 import { RecordingCoursePlayer } from "@/components/recording-course-player";
@@ -45,6 +44,7 @@ function VideoBookPlaylist({
   const [openSection, setOpenSection] = useState<string | null>(
     () => initialLesson.section || "الدروس"
   );
+  const [shareMessage, setShareMessage] = useState("");
   const currentIndex = book.lessons.findIndex(
     (lesson) => lesson.id === currentLesson.id
   );
@@ -54,12 +54,6 @@ function VideoBookPlaylist({
   const embedUrl = currentLesson.youtubeUrl
     ? getVideoEmbedUrl(currentLesson.youtubeUrl)
     : null;
-  const currentImage =
-    currentLesson.image ??
-    currentLesson.coverImage ??
-    book.cover ??
-    book.coverImage;
-
   function selectLesson(lessonId: string) {
     const lesson = book.lessons.find((item) => item.id === lessonId);
     if (!lesson) return;
@@ -69,6 +63,32 @@ function VideoBookPlaylist({
     const nextUrl = new URL(window.location.href);
     nextUrl.searchParams.set("lesson", lesson.id);
     window.history.replaceState(null, "", nextUrl.toString());
+  }
+
+  async function shareCurrentLesson() {
+    const url = new URL(window.location.href);
+    url.searchParams.set("lesson", currentLesson.id);
+    url.hash = "";
+    const shareUrl = url.toString();
+    const title = `${book.title} – ${currentLesson.title}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url: shareUrl });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareMessage("تم نسخ رابط هذا الدرس");
+    } catch {
+      setShareMessage("تعذر النسخ؛ انسخ الرابط من شريط العنوان");
+    }
+
+    window.setTimeout(() => setShareMessage(""), 2600);
   }
 
   return (
@@ -120,9 +140,24 @@ function VideoBookPlaylist({
           <h1 className="mt-4 text-3xl font-bold leading-tight text-stone-950">
             {book.title}
           </h1>
-          <p className="mt-4 text-xl font-semibold text-stone-700">
-            {currentLesson.title}
-          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xl font-semibold text-stone-700">
+              {currentLesson.title}
+            </p>
+            <button
+              type="button"
+              onClick={shareCurrentLesson}
+              className="inline-flex items-center gap-2 rounded-full border border-emerald-900/20 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-950 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-800"
+            >
+              <Share2 className="h-4 w-4" aria-hidden="true" />
+              مشاركة هذا الدرس
+            </button>
+          </div>
+          {shareMessage ? (
+            <p className="mt-2 text-sm font-bold text-emerald-800" aria-live="polite">
+              {shareMessage}
+            </p>
+          ) : null}
           <p className="mt-2 text-base leading-8 text-stone-500">
             الشارح: {book.explainerName} · المؤلف: {book.authorName}
           </p>
@@ -226,6 +261,7 @@ function VideoBookPlaylist({
                           id: lesson.id,
                           title: lesson.title,
                           section: lesson.duration,
+                          href: `/books/${book.slug}?lesson=${encodeURIComponent(lesson.id)}`,
                           imageSources:
                             book.source === "youtube"
                               ? getYouTubeLessonThumbnailSources(lesson)

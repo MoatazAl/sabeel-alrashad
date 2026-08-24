@@ -71,6 +71,27 @@ export function LessonList({
           </>
         );
 
+        if (lesson.href) {
+          return (
+            <Link
+              key={lesson.id}
+              href={lesson.href}
+              onClick={
+                onSelect
+                  ? (event) => {
+                      event.preventDefault();
+                      onSelect(lesson.id);
+                    }
+                  : undefined
+              }
+              aria-current={isCurrent ? "true" : undefined}
+              className={className}
+            >
+              {content}
+            </Link>
+          );
+        }
+
         if (onSelect) {
           return (
             <button
@@ -84,11 +105,7 @@ export function LessonList({
           );
         }
 
-        return lesson.href ? (
-          <Link key={lesson.id} href={lesson.href} className={className}>
-            {content}
-          </Link>
-        ) : (
+        return (
           <div key={lesson.id} className={className}>
             {content}
           </div>

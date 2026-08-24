@@ -9,6 +9,7 @@ import {
   Play,
   RotateCcw,
   RotateCw,
+  Share2,
   Volume2,
   VolumeX,
 } from "lucide-react";
@@ -89,6 +90,7 @@ export function RecordingCoursePlayer({
     () => firstLesson?.section || "الدروس"
   );
   const [arePlayerControlsVisible, setArePlayerControlsVisible] = useState(true);
+  const [shareMessage, setShareMessage] = useState("");
   const [showsMainCourseCover, setShowsMainCourseCover] = useState(
     book.slug === "sahih-al-bukhari" && !initialLessonId
   );
@@ -374,10 +376,40 @@ export function RecordingCoursePlayer({
     };
   }, [keepControlsVisible, playAudio, playbackRate]);
 
-  function updateUrl(lesson: Lesson) {
+  function getLessonUrl(lesson: Lesson) {
     const nextUrl = new URL(window.location.href);
     nextUrl.searchParams.set("lesson", lesson.id);
-    window.history.replaceState(null, "", nextUrl.toString());
+    nextUrl.hash = "";
+    return nextUrl.toString();
+  }
+
+  function updateUrl(lesson: Lesson) {
+    window.history.replaceState(null, "", getLessonUrl(lesson));
+  }
+
+  async function shareSelectedLesson() {
+    if (!selectedLesson) return;
+
+    const url = getLessonUrl(selectedLesson);
+    const title = `${book.title} – ${selectedLessonTitle}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url });
+        return;
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareMessage("تم نسخ رابط هذا الدرس");
+    } catch {
+      setShareMessage("تعذر النسخ؛ انسخ الرابط من شريط العنوان");
+    }
+
+    window.setTimeout(() => setShareMessage(""), 2600);
   }
 
   function selectLesson(lesson: Lesson, shouldPlay = true) {
@@ -514,7 +546,7 @@ export function RecordingCoursePlayer({
   }
 
   return (
-    <div dir="rtl" className="space-y-5">
+    <div dir="rtl" className="min-w-0 space-y-4 sm:space-y-5">
       <div
         className={
           playerOnly
@@ -527,16 +559,16 @@ export function RecordingCoursePlayer({
             ].join(" ")
         }
       >
-        <section className="min-w-0 space-y-4">
+        <section className="min-w-0 space-y-3 sm:space-y-4">
           {!playerOnly ? (
-            <div className="space-y-2">
-              <p className="text-sm font-bold text-amber-700">تسجيل صوتي</p>
+            <div className="space-y-1.5 px-0.5 sm:space-y-2 sm:px-0">
+              <p className="text-xs font-bold text-amber-700 sm:text-sm">تسجيل صوتي</p>
 
-              <h1 className="text-3xl font-bold leading-tight text-stone-950">
+              <h1 className="text-2xl font-bold leading-tight text-stone-950 sm:text-3xl">
                 {book.title}
               </h1>
 
-              <p className="text-lg font-semibold leading-8 text-emerald-950">
+              <p className="text-base font-semibold leading-7 text-emerald-950 sm:text-lg sm:leading-8">
                 {selectedLessonTitle}
               </p>
             </div>
@@ -558,14 +590,14 @@ export function RecordingCoursePlayer({
               }
             }}
             className={[
-              "relative overflow-hidden bg-stone-950 text-white shadow-[0_22px_70px_rgba(57,44,24,0.14)]",
+              "relative w-full max-w-full overflow-hidden bg-stone-950 text-white shadow-[0_22px_70px_rgba(57,44,24,0.14)]",
               isFullscreen
                 ? "h-screen w-screen rounded-none border-0 shadow-none"
                 : [
-                    "aspect-video rounded-lg border border-[#d8c59d]",
+                    "aspect-video rounded-xl border border-[#d8c59d]",
                     playerOnly
                       ? "min-h-0"
-                      : "min-h-[300px] sm:min-h-[430px]",
+                      : "min-h-0 sm:min-h-[430px]",
                   ].join(" "),
             ].join(" ")}
           >
@@ -592,27 +624,43 @@ export function RecordingCoursePlayer({
               data-player-top-overlay
               data-visible={arePlayerControlsVisible ? "true" : "false"}
               className={[
-                "absolute inset-x-0 top-0 z-10 p-4 transition-opacity duration-300 sm:p-5",
+                "absolute inset-x-0 top-0 z-10 p-2.5 transition-opacity duration-300 sm:p-5",
                 arePlayerControlsVisible
                   ? "opacity-100"
                   : "pointer-events-none opacity-0",
               ].join(" ")}
             >
-              <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex items-start justify-between gap-2 sm:gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-amber-100">
+                  <p className="text-[11px] font-bold leading-4 text-amber-100 sm:text-sm">
                     الدرس {selectedLessonNumber} من {selectedLessonTotal}
                   </p>
-                  <h2 className="mt-1 max-w-3xl text-xl font-bold leading-8 text-white sm:text-2xl">
+                  <h2 className="max-w-3xl truncate text-sm font-bold leading-6 text-white sm:mt-1 sm:text-2xl sm:leading-8">
                     {selectedLessonTitle}
                   </h2>
                 </div>
-                {selectedLesson.section ? (
-                  <span className="rounded-full border border-white/25 bg-black/35 px-3 py-1 text-sm font-bold text-white backdrop-blur">
-                    {selectedLesson.section}
-                  </span>
-                ) : null}
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {selectedLesson.section ? (
+                    <span className="hidden max-w-40 truncate rounded-full border border-white/25 bg-black/35 px-3 py-1 text-sm font-bold text-white backdrop-blur sm:block">
+                      {selectedLesson.section}
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={shareSelectedLesson}
+                    aria-label="مشاركة هذا الدرس"
+                    className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-white/25 bg-black/45 px-2.5 text-xs font-bold text-white backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-9 sm:px-3"
+                  >
+                    <Share2 className="h-4 w-4" aria-hidden="true" />
+                    <span>مشاركة</span>
+                  </button>
+                </div>
               </div>
+              {shareMessage ? (
+                <p className="mt-2 w-fit rounded-full bg-emerald-900/90 px-3 py-1 text-xs font-bold text-white shadow-lg" aria-live="polite">
+                  {shareMessage}
+                </p>
+              ) : null}
             </div>
 
             <div
@@ -625,12 +673,12 @@ export function RecordingCoursePlayer({
                   : "pointer-events-none opacity-0",
               ].join(" ")}
             >
-              <div className="grid grid-cols-[auto_auto_auto] items-center gap-3 sm:gap-5">
+              <div className="grid grid-cols-[auto_auto_auto] items-center gap-2 sm:gap-5">
                 <button
                   type="button"
                   onClick={skipForward}
                   aria-label="تقديم 10 ثوانٍ"
-                  className="inline-flex h-12 min-w-14 items-center justify-center gap-1 rounded-full border border-white/25 bg-black/45 px-3 text-sm font-bold text-white shadow-lg backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-14 sm:min-w-16"
+                  className="inline-flex h-10 min-w-11 items-center justify-center gap-0.5 rounded-full border border-white/25 bg-black/45 px-2 text-xs font-bold text-white shadow-lg backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-14 sm:min-w-16 sm:gap-1 sm:px-3 sm:text-sm"
                 >
                   <span>10</span>
                   <RotateCw className="h-4 w-4" aria-hidden="true" />
@@ -639,19 +687,19 @@ export function RecordingCoursePlayer({
                   type="button"
                   onClick={togglePlayback}
                   aria-label={isPlaying ? "إيقاف" : "تشغيل"}
-                  className="flex h-20 w-20 items-center justify-center rounded-full border border-white/30 bg-black/60 text-white shadow-2xl shadow-black/40 backdrop-blur transition hover:scale-105 hover:bg-emerald-950/80 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-24 sm:w-24"
+                  className="flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-black/60 text-white shadow-2xl shadow-black/40 backdrop-blur transition hover:scale-105 hover:bg-emerald-950/80 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-24 sm:w-24"
                 >
                   {isPlaying ? (
-                    <Pause className="h-9 w-9" aria-hidden="true" fill="currentColor" />
+                    <Pause className="h-7 w-7 sm:h-9 sm:w-9" aria-hidden="true" fill="currentColor" />
                   ) : (
-                    <Play className="h-9 w-9" aria-hidden="true" fill="currentColor" />
+                    <Play className="h-7 w-7 sm:h-9 sm:w-9" aria-hidden="true" fill="currentColor" />
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={skipBackward}
                   aria-label="رجوع 10 ثوانٍ"
-                  className="inline-flex h-12 min-w-14 items-center justify-center gap-1 rounded-full border border-white/25 bg-black/45 px-3 text-sm font-bold text-white shadow-lg backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-14 sm:min-w-16"
+                  className="inline-flex h-10 min-w-11 items-center justify-center gap-0.5 rounded-full border border-white/25 bg-black/45 px-2 text-xs font-bold text-white shadow-lg backdrop-blur transition hover:bg-black/65 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-14 sm:min-w-16 sm:gap-1 sm:px-3 sm:text-sm"
                 >
                   <RotateCcw className="h-4 w-4" aria-hidden="true" />
                   <span>10</span>
@@ -663,7 +711,7 @@ export function RecordingCoursePlayer({
               data-player-bottom-controls
               data-visible={arePlayerControlsVisible ? "true" : "false"}
               className={[
-                "absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-3 pt-10 transition-opacity duration-300 sm:p-5 sm:pt-14",
+                "absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/95 via-black/65 to-transparent p-2.5 pt-7 transition-opacity duration-300 sm:p-5 sm:pt-14",
                 arePlayerControlsVisible
                   ? "opacity-100"
                   : "pointer-events-none opacity-0",
@@ -690,25 +738,25 @@ export function RecordingCoursePlayer({
                 className="audio-range h-2 w-full cursor-pointer accent-amber-300"
               />
 
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="mt-1.5 flex items-center justify-between gap-2 sm:mt-3 sm:gap-3">
                 <div
                   dir="ltr"
-                  className="text-sm font-semibold tabular-nums text-white/85"
+                  className="shrink-0 text-[11px] font-semibold tabular-nums text-white/85 sm:text-sm"
                 >
                   {formatTime(currentTime)} / {duration > 0 ? formatTime(duration) : "--:--"}
                 </div>
 
-                <div dir="ltr" className="flex items-center gap-2">
+                <div dir="ltr" className="flex min-w-0 items-center gap-1.5 sm:gap-2">
                   <button
                     type="button"
                     onClick={toggleMute}
                     aria-label={isMuted ? "إلغاء كتم الصوت" : "كتم الصوت"}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:bg-black/55 focus:outline-none focus:ring-2 focus:ring-amber-200"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:bg-black/55 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-10 sm:w-10"
                   >
                     {isMuted ? (
-                      <VolumeX className="h-5 w-5" aria-hidden="true" />
+                      <VolumeX className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                     ) : (
-                      <Volume2 className="h-5 w-5" aria-hidden="true" />
+                      <Volume2 className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                     )}
                   </button>
                   <input
@@ -723,7 +771,7 @@ export function RecordingCoursePlayer({
                     onPointerCancel={endControlsInteraction}
                     aria-label="مستوى الصوت"
                     style={volumeStyle}
-                    className="audio-range h-1 w-20 cursor-pointer accent-amber-300 sm:w-28"
+                    className="audio-range hidden h-1 w-20 cursor-pointer accent-amber-300 sm:block sm:w-28"
                   />
                   <select
                     value={String(playbackRate)}
@@ -733,7 +781,7 @@ export function RecordingCoursePlayer({
                     onFocus={keepControlsVisible}
                     onBlur={endControlsInteraction}
                     aria-label="سرعة التشغيل"
-                    className="h-10 rounded-md border border-white/20 bg-black/35 px-2 text-sm font-bold text-white outline-none transition hover:bg-black/55 focus:ring-2 focus:ring-amber-200"
+                    className="h-8 rounded-md border border-white/20 bg-black/35 px-1.5 text-xs font-bold text-white outline-none transition hover:bg-black/55 focus:ring-2 focus:ring-amber-200 sm:h-10 sm:px-2 sm:text-sm"
                   >
                     {playbackRates.map((rate) => (
                       <option key={rate} value={String(rate)}>
@@ -745,12 +793,12 @@ export function RecordingCoursePlayer({
                     type="button"
                     onClick={toggleFullscreen}
                     aria-label={isFullscreen ? "الخروج من ملء الشاشة" : "ملء الشاشة"}
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:bg-black/55 focus:outline-none focus:ring-2 focus:ring-amber-200"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:bg-black/55 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-10 sm:w-10"
                   >
                     {isFullscreen ? (
-                      <Minimize2 className="h-5 w-5" aria-hidden="true" />
+                      <Minimize2 className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                     ) : (
-                      <Maximize2 className="h-5 w-5" aria-hidden="true" />
+                      <Maximize2 className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                     )}
                   </button>
                 </div>
@@ -759,7 +807,7 @@ export function RecordingCoursePlayer({
           </article>
 
           {!playerOnly ? (
-            <div className="rounded-lg border border-[#e0d2b4] bg-[#fffdf7] p-4 shadow-[0_12px_35px_rgba(57,44,24,0.08)]">
+            <div className="rounded-lg border border-[#e0d2b4] bg-[#fffdf7] p-3 shadow-[0_12px_35px_rgba(57,44,24,0.08)] sm:p-4">
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                 <div>
                   <p className="text-sm font-bold text-amber-700">الدرس التالي</p>
@@ -778,7 +826,7 @@ export function RecordingCoursePlayer({
                   type="button"
                   onClick={() => nextLesson && selectLesson(nextLesson)}
                   disabled={!nextLesson}
-                  className="rounded-md bg-emerald-900 px-6 py-3 text-base font-bold text-white shadow-[0_10px_24px_rgba(6,78,59,0.22)] transition hover:bg-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-800 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:shadow-none"
+                  className="w-full rounded-md bg-emerald-900 px-6 py-3 text-base font-bold text-white shadow-[0_10px_24px_rgba(6,78,59,0.22)] transition hover:bg-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-800 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:shadow-none sm:w-auto"
                 >
                   {nextLesson ? "تشغيل الدرس التالي" : "آخر درس"}
                 </button>
@@ -790,7 +838,7 @@ export function RecordingCoursePlayer({
         {!playerOnly ? (
           <aside
             className={[
-              "min-w-0 rounded-lg border border-[#dfd1b4] bg-[#fffdf7] p-3 shadow-[0_14px_45px_rgba(57,44,24,0.08)] xl:sticky xl:top-28",
+              "min-w-0 max-w-full rounded-lg border border-[#dfd1b4] bg-[#fffdf7] p-2.5 shadow-[0_14px_45px_rgba(57,44,24,0.08)] sm:p-3 xl:sticky xl:top-28",
               usesSectionedLessonIndex
                 ? "xl:max-h-[720px]"
                 : "xl:max-h-[560px]",
@@ -812,7 +860,7 @@ export function RecordingCoursePlayer({
                   </div>
                 </div>
 
-                <div className="lesson-scroll max-h-[560px] space-y-3 overflow-y-auto pl-1 pr-0.5 xl:max-h-[600px]">
+                <div className="lesson-scroll space-y-2.5 overflow-visible pl-0 pr-0 sm:space-y-3 xl:max-h-[600px] xl:overflow-y-auto xl:pl-1 xl:pr-0.5">
                   {Object.entries(groupedLessons).map(
                     ([section, sectionLessons], sectionIndex) => {
                       const isOpen = openSection === section;
@@ -842,7 +890,7 @@ export function RecordingCoursePlayer({
                               aria-expanded={isOpen}
                               aria-controls={panelId}
                               className={[
-                                "flex w-full items-center justify-between gap-4 p-4 text-start font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-800",
+                                "flex w-full min-w-0 items-center justify-between gap-2 p-3 text-start font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-800 sm:gap-4 sm:p-4",
                                 isOpen
                                   ? "bg-emerald-50 text-emerald-950"
                                   : containsSelectedLesson
@@ -877,10 +925,13 @@ export function RecordingCoursePlayer({
                                 const isActivePlaying = isActive && isPlaying;
 
                                 return (
-                                  <button
+                                  <a
                                     key={lesson.id}
-                                    type="button"
-                                    onClick={() => selectLesson(lesson)}
+                                    href={`/books/${book.slug}?lesson=${encodeURIComponent(lesson.id)}`}
+                                    onClick={(event) => {
+                                      event.preventDefault();
+                                      selectLesson(lesson);
+                                    }}
                                     aria-current={isActive ? "true" : undefined}
                                     className={[
                                       "relative flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-right transition focus:outline-none focus:ring-2 focus:ring-emerald-800",
@@ -911,7 +962,7 @@ export function RecordingCoursePlayer({
                                         </span>
                                       ) : null}
                                     </span>
-                                  </button>
+                                  </a>
                                 );
                               })}
                             </div>
@@ -937,10 +988,13 @@ export function RecordingCoursePlayer({
                     const isActivePlaying = isActive && isPlaying;
 
                     return (
-                      <button
+                      <a
                         key={lesson.id}
-                        type="button"
-                        onClick={() => selectLesson(lesson)}
+                        href={`/books/${book.slug}?lesson=${encodeURIComponent(lesson.id)}`}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          selectLesson(lesson);
+                        }}
                         aria-current={isActive ? "true" : undefined}
                         className={[
                           "relative flex w-full items-center gap-3 rounded-md border px-3 py-2.5 text-right transition focus:outline-none focus:ring-2 focus:ring-emerald-800",
@@ -972,7 +1026,7 @@ export function RecordingCoursePlayer({
                               : lesson.duration ?? lesson.section ?? "تسجيل صوتي"}
                           </span>
                         </span>
-                      </button>
+                      </a>
                     );
                   })}
                 </div>
