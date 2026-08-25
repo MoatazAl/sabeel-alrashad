@@ -5,6 +5,7 @@ import {
   Check,
   ChevronDown,
   Copy,
+  LoaderCircle,
   Maximize2,
   Minimize2,
   Pause,
@@ -93,7 +94,7 @@ export function RecordingCoursePlayer({
   const audioRef = useRef<HTMLAudioElement>(null);
   const playerRef = useRef<HTMLElement>(null);
   const pendingSeekRef = useRef<number | null>(null);
-  const shouldPlayAfterLoadRef = useRef(false);
+  const wantsPlaybackRef = useRef(false);
   const sourceGenerationRef = useRef(0);
   const controlsHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controlsInteractionActiveRef = useRef(false);
@@ -102,6 +103,7 @@ export function RecordingCoursePlayer({
     firstLesson
   );
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
@@ -302,10 +304,13 @@ export function RecordingCoursePlayer({
     const sourceGeneration = sourceGenerationRef.current;
 
     try {
+      wantsPlaybackRef.current = true;
+      setIsLoading(true);
       setErrorMessage("");
       await audio.play();
       if (sourceGeneration !== sourceGenerationRef.current) return;
       setIsPlaying(true);
+      setIsLoading(false);
       setArePlayerControlsVisible(true);
       scheduleControlsHide();
     } catch (error) {
@@ -313,7 +318,9 @@ export function RecordingCoursePlayer({
       const wasAborted = error instanceof DOMException && error.name === "AbortError";
       if (wasSuperseded || wasAborted) return;
 
+      wantsPlaybackRef.current = false;
       setIsPlaying(false);
+      setIsLoading(false);
       keepControlsVisible();
       setErrorMessage("تعذر تشغيل التسجيل، يرجى المحاولة لاحقًا");
 
@@ -334,12 +341,23 @@ export function RecordingCoursePlayer({
     const audio = audioRef.current;
     if (!audio) return;
 
-    audio.pause();
     sourceGenerationRef.current += 1;
+    wantsPlaybackRef.current = shouldPlay;
+    audio.pause();
     pendingSeekRef.current = Math.max(0, startTime);
-    shouldPlayAfterLoadRef.current = shouldPlay;
-    audio.src = source;
-    audio.load();
+    setIsLoading(shouldPlay);
+
+    const nextSource = new URL(source, window.location.href).href;
+    if (audio.src !== nextSource || audio.error) {
+      audio.src = source;
+      audio.load();
+    } else if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) {
+      audio.currentTime = pendingSeekRef.current;
+      pendingSeekRef.current = null;
+      setCurrentTime(audio.currentTime);
+    }
+
+    if (shouldPlay) void playAudio();
   }
 
   useEffect(() => {
@@ -360,11 +378,27 @@ export function RecordingCoursePlayer({
       setDuration(Number.isFinite(media.duration) ? media.duration : 0);
       media.playbackRate = playbackRate;
       applyPendingSeek();
+    }
 
-      if (shouldPlayAfterLoadRef.current) {
-        shouldPlayAfterLoadRef.current = false;
-        void playAudio();
-      }
+    function handlePlaying() {
+      if (!wantsPlaybackRef.current) return;
+
+      setIsPlaying(true);
+      setIsLoading(false);
+      scheduleControlsHide();
+    }
+
+    function handleWaiting() {
+      if (!wantsPlaybackRef.current) return;
+
+      setIsPlaying(false);
+      setIsLoading(true);
+      keepControlsVisible();
+    }
+
+    function handlePause() {
+      setIsPlaying(false);
+      if (!wantsPlaybackRef.current) setIsLoading(false);
     }
 
     function handleTimeUpdate() {
@@ -372,13 +406,17 @@ export function RecordingCoursePlayer({
     }
 
     function handleEnded() {
+      wantsPlaybackRef.current = false;
       setIsPlaying(false);
+      setIsLoading(false);
       keepControlsVisible();
       setCurrentTime(Number.isFinite(media.duration) ? media.duration : media.currentTime);
     }
 
     function handleError() {
+      wantsPlaybackRef.current = false;
       setIsPlaying(false);
+      setIsLoading(false);
       keepControlsVisible();
       setErrorMessage("تعذر تشغيل التسجيل، يرجى المحاولة لاحقًا");
 
@@ -393,6 +431,9 @@ export function RecordingCoursePlayer({
 
     media.addEventListener("loadedmetadata", handleMetadata);
     media.addEventListener("durationchange", handleMetadata);
+    media.addEventListener("playing", handlePlaying);
+    media.addEventListener("waiting", handleWaiting);
+    media.addEventListener("pause", handlePause);
     media.addEventListener("timeupdate", handleTimeUpdate);
     media.addEventListener("ended", handleEnded);
     media.addEventListener("error", handleError);
@@ -400,11 +441,27 @@ export function RecordingCoursePlayer({
     return () => {
       media.removeEventListener("loadedmetadata", handleMetadata);
       media.removeEventListener("durationchange", handleMetadata);
+      media.removeEventListener("playing", handlePlaying);
+      media.removeEventListener("waiting", handleWaiting);
+      media.removeEventListener("pause", handlePause);
       media.removeEventListener("timeupdate", handleTimeUpdate);
       media.removeEventListener("ended", handleEnded);
       media.removeEventListener("error", handleError);
     };
   }, [keepControlsVisible, playAudio, playbackRate]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    const source = selectedLesson?.audioUrl;
+    if (!audio || !source) return;
+
+    const nextSource = new URL(source, window.location.href).href;
+    if (audio.src === nextSource) return;
+
+    pendingSeekRef.current = Math.max(0, selectedLesson.startAt ?? 0);
+    audio.src = source;
+    audio.load();
+  }, [selectedLesson?.audioUrl, selectedLesson?.startAt]);
 
   function getLessonUrl(lesson: Lesson) {
     const nextUrl = new URL(window.location.href);
@@ -454,9 +511,9 @@ export function RecordingCoursePlayer({
   function selectLesson(lesson: Lesson, shouldPlay = true) {
     if (!lesson.audioUrl) return;
 
-    shouldPlayAfterLoadRef.current = shouldPlay;
     setErrorMessage("");
     setIsPlaying(false);
+    setIsLoading(shouldPlay);
     keepControlsVisible();
     setCurrentTime(0);
     setDuration(0);
@@ -483,10 +540,12 @@ export function RecordingCoursePlayer({
 
     setShowsMainCourseCover(false);
 
-    if (isPlaying) {
-      audio.pause();
+    if (isPlaying || isLoading) {
       sourceGenerationRef.current += 1;
+      wantsPlaybackRef.current = false;
+      audio.pause();
       setIsPlaying(false);
+      setIsLoading(false);
       keepControlsVisible();
       return;
     }
@@ -757,10 +816,13 @@ export function RecordingCoursePlayer({
                 <button
                   type="button"
                   onClick={togglePlayback}
-                  aria-label={isPlaying ? "إيقاف" : "تشغيل"}
+                  aria-label={isLoading ? "جارٍ تشغيل الدرس" : isPlaying ? "إيقاف" : "تشغيل"}
+                  aria-busy={isLoading}
                   className="pointer-events-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-black/60 text-white shadow-2xl shadow-black/40 backdrop-blur transition hover:scale-105 hover:bg-emerald-950/80 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-24 sm:w-24"
                 >
-                  {isPlaying ? (
+                  {isLoading ? (
+                    <LoaderCircle className="h-7 w-7 animate-spin sm:h-9 sm:w-9" aria-hidden="true" />
+                  ) : isPlaying ? (
                     <Pause className="h-7 w-7 sm:h-9 sm:w-9" aria-hidden="true" fill="currentColor" />
                   ) : (
                     <Play className="h-7 w-7 sm:h-9 sm:w-9" aria-hidden="true" fill="currentColor" />
@@ -996,6 +1058,7 @@ export function RecordingCoursePlayer({
                               {sectionLessons.map((lesson, sectionLessonIndex) => {
                                 const isActive = lesson.id === selectedLesson.id;
                                 const isActivePlaying = isActive && isPlaying;
+                                const isActiveLoading = isActive && isLoading;
 
                                 return (
                                   <a
@@ -1027,9 +1090,11 @@ export function RecordingCoursePlayer({
                                       <span className="block text-base font-bold leading-7">
                                         الدرس {sectionLessonIndex + 1}
                                       </span>
-                                      {isActivePlaying || lesson.duration ? (
+                                      {isActivePlaying || isActiveLoading || lesson.duration ? (
                                         <span className="mt-0.5 block text-sm font-semibold text-stone-500">
-                                          {isActivePlaying
+                                          {isActiveLoading
+                                            ? "جارٍ التشغيل"
+                                            : isActivePlaying
                                             ? "قيد التشغيل"
                                             : lesson.duration}
                                         </span>
@@ -1059,6 +1124,7 @@ export function RecordingCoursePlayer({
                   {lessons.map((lesson, index) => {
                     const isActive = lesson.id === selectedLesson.id;
                     const isActivePlaying = isActive && isPlaying;
+                    const isActiveLoading = isActive && isLoading;
 
                     return (
                       <a
@@ -1094,7 +1160,9 @@ export function RecordingCoursePlayer({
                             {lesson.title}
                           </span>
                           <span className="mt-0.5 block text-sm font-semibold text-stone-600">
-                            {isActivePlaying
+                            {isActiveLoading
+                              ? "جارٍ التشغيل"
+                              : isActivePlaying
                               ? "قيد التشغيل"
                               : lesson.duration ?? lesson.section ?? "تسجيل صوتي"}
                           </span>
@@ -1109,11 +1177,7 @@ export function RecordingCoursePlayer({
         ) : null}
       </div>
 
-      <audio
-        ref={audioRef}
-        src={selectedLesson.audioUrl}
-        preload="metadata"
-      />
+      <audio ref={audioRef} preload="metadata" />
     </div>
   );
 }
