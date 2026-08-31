@@ -186,7 +186,7 @@ const rawBooks: BookSource[] = [
     sheikhSlug: sahihAlBukhariBook.sheikhSlug,
     category: sahihAlBukhariBook.category,
     status: "ongoing",
-    updatedAt: "2026-08-23",
+    updatedAt: "2026-08-31",
     type: "audio",
     source: "r2",
     title: sahihAlBukhariBook.title,
