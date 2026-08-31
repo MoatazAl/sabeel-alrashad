@@ -97,6 +97,7 @@ export function RecordingCoursePlayer({
   const wantsPlaybackRef = useRef(false);
   const sourceGenerationRef = useRef(0);
   const controlsHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const errorHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controlsInteractionActiveRef = useRef(false);
 
   const [selectedLesson, setSelectedLesson] = useState<Lesson | undefined>(
@@ -111,6 +112,7 @@ export function RecordingCoursePlayer({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [errorMessage, setErrorMessage] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFallbackFullscreen, setIsFallbackFullscreen] = useState(false);
   const [openSection, setOpenSection] = useState<string | null>(
     () => firstLesson?.section || "الدروس"
   );
@@ -175,6 +177,26 @@ export function RecordingCoursePlayer({
   const volumeStyle = {
     "--range-progress": `${(isMuted ? 0 : volume) * 100}%`,
   } as CSSProperties;
+  const isPlayerFullscreen = isFullscreen || isFallbackFullscreen;
+
+  const clearErrorHideTimer = useCallback(() => {
+    if (errorHideTimerRef.current === null) return;
+
+    clearTimeout(errorHideTimerRef.current);
+    errorHideTimerRef.current = null;
+  }, []);
+
+  const showErrorTemporarily = useCallback(
+    (message: string) => {
+      clearErrorHideTimer();
+      setErrorMessage(message);
+      errorHideTimerRef.current = setTimeout(() => {
+        setErrorMessage("");
+        errorHideTimerRef.current = null;
+      }, 3200);
+    },
+    [clearErrorHideTimer]
+  );
 
   const clearControlsHideTimer = useCallback(() => {
     if (controlsHideTimerRef.current === null) return;
@@ -279,6 +301,28 @@ export function RecordingCoursePlayer({
   }, []);
 
   useEffect(() => {
+    if (!isFallbackFullscreen) return;
+
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setIsFallbackFullscreen(false);
+    }
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [isFallbackFullscreen]);
+
+  useEffect(() => {
     setSupportsNativeShare(typeof navigator.share === "function");
   }, []);
 
@@ -295,8 +339,9 @@ export function RecordingCoursePlayer({
       sourceGenerationRef.current += 1;
       audio?.pause();
       clearControlsHideTimer();
+      clearErrorHideTimer();
     };
-  }, [clearControlsHideTimer]);
+  }, [clearControlsHideTimer, clearErrorHideTimer]);
 
   const playAudio = useCallback(async () => {
     const audio = audioRef.current;
@@ -322,7 +367,7 @@ export function RecordingCoursePlayer({
       setIsPlaying(false);
       setIsLoading(false);
       keepControlsVisible();
-      setErrorMessage("تعذر تشغيل التسجيل، يرجى المحاولة لاحقًا");
+      showErrorTemporarily("تعذر تشغيل التسجيل، يرجى المحاولة لاحقًا");
 
       if (process.env.NODE_ENV !== "production") {
         console.warn("Audio play() failed", {
@@ -331,7 +376,7 @@ export function RecordingCoursePlayer({
         });
       }
     }
-  }, [keepControlsVisible, scheduleControlsHide]);
+  }, [keepControlsVisible, scheduleControlsHide, showErrorTemporarily]);
 
   function loadPlayableSource(
     source: string,
@@ -418,7 +463,7 @@ export function RecordingCoursePlayer({
       setIsPlaying(false);
       setIsLoading(false);
       keepControlsVisible();
-      setErrorMessage("تعذر تشغيل التسجيل، يرجى المحاولة لاحقًا");
+      showErrorTemporarily("تعذر تشغيل التسجيل، يرجى المحاولة لاحقًا");
 
       if (process.env.NODE_ENV !== "production") {
         console.warn("Audio playback failed", {
@@ -448,7 +493,13 @@ export function RecordingCoursePlayer({
       media.removeEventListener("ended", handleEnded);
       media.removeEventListener("error", handleError);
     };
-  }, [keepControlsVisible, playAudio, playbackRate]);
+  }, [
+    keepControlsVisible,
+    playAudio,
+    playbackRate,
+    scheduleControlsHide,
+    showErrorTemporarily,
+  ]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -623,11 +674,19 @@ export function RecordingCoursePlayer({
   }
 
   async function toggleFullscreen() {
+    if (isFallbackFullscreen) {
+      setIsFallbackFullscreen(false);
+      return;
+    }
+
     const canUseFullscreen =
       document.fullscreenEnabled && Boolean(playerRef.current?.requestFullscreen);
 
-    if (!canUseFullscreen || !playerRef.current) {
-      setErrorMessage("ملء الشاشة غير مدعوم في هذا المتصفح");
+    if (!playerRef.current) return;
+
+    if (!canUseFullscreen) {
+      setErrorMessage("");
+      setIsFallbackFullscreen(true);
       return;
     }
 
@@ -638,7 +697,12 @@ export function RecordingCoursePlayer({
         await playerRef.current.requestFullscreen();
       }
     } catch (error) {
-      setErrorMessage("تعذر فتح ملء الشاشة");
+      if (!document.fullscreenElement) {
+        setErrorMessage("");
+        setIsFallbackFullscreen(true);
+      } else {
+        showErrorTemporarily("تعذر الخروج من ملء الشاشة");
+      }
 
       if (process.env.NODE_ENV !== "production") {
         console.error("Fullscreen toggle failed", error);
@@ -737,8 +801,10 @@ export function RecordingCoursePlayer({
             }}
             className={[
               "relative w-full max-w-full scroll-mt-28 overflow-hidden bg-stone-950 text-white shadow-[0_22px_70px_rgba(57,44,24,0.14)]",
-              isFullscreen
-                ? "h-screen w-screen rounded-none border-0 shadow-none"
+              isPlayerFullscreen
+                ? isFallbackFullscreen
+                  ? "fixed inset-0 z-[100] h-[100dvh] w-screen max-w-none rounded-none border-0 shadow-none"
+                  : "h-screen w-screen rounded-none border-0 shadow-none"
                 : [
                     "aspect-video rounded-xl border border-[#d8c59d]",
                     playerOnly
@@ -882,10 +948,10 @@ export function RecordingCoursePlayer({
                   <button
                     type="button"
                     onClick={toggleFullscreen}
-                    aria-label={isFullscreen ? "الخروج من ملء الشاشة" : "ملء الشاشة"}
+                    aria-label={isPlayerFullscreen ? "الخروج من ملء الشاشة" : "ملء الشاشة"}
                     className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/35 text-white transition hover:bg-black/55 focus:outline-none focus:ring-2 focus:ring-amber-200 sm:h-10 sm:w-10"
                   >
-                    {isFullscreen ? (
+                    {isPlayerFullscreen ? (
                       <Minimize2 className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
                     ) : (
                       <Maximize2 className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
