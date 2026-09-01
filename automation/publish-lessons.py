@@ -372,6 +372,20 @@ def publish(config, course_key: str, lesson_number: int, dry_run: bool) -> None:
             ], show=True)
         update_library(course, lesson_number, public_url, poster_url)
 
+    # Build the iPhone-native fullscreen video for every new audio lesson.
+    run(
+        [
+            sys.executable,
+            "automation/fullscreen_videos.py",
+            "--publish",
+            "--course",
+            course_key,
+            "--lesson",
+            str(lesson_number),
+        ],
+        show=True,
+    )
+
     run(["npm", "run", "typecheck"], show=True)
     run(["npm", "run", "build"], show=True)
 

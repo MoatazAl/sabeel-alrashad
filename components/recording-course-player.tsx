@@ -39,6 +39,28 @@ const playbackRates = [0.75, 1, 1.25, 1.5, 1.75, 2] as const;
 
 type ShareStatus = "idle" | "copied" | "error";
 
+type IOSFullscreenVideoElement = HTMLVideoElement & {
+  webkitSupportsFullscreen?: boolean;
+  webkitDisplayingFullscreen?: boolean;
+  webkitEnterFullscreen?: () => void;
+  webkitEnterFullScreen?: () => void;
+  webkitExitFullscreen?: () => void;
+};
+
+function isIPhoneBrowser() {
+  if (typeof navigator === "undefined") return false;
+  return /iPhone|iPod/i.test(navigator.userAgent);
+}
+
+function getFullscreenVideoUrl(audioUrl?: string) {
+  if (!audioUrl) return "";
+
+  return audioUrl.replace(
+    /\.(?:m4a|aac|mp3)(\?.*)?$/i,
+    ".mp4$1"
+  );
+}
+
 function formatTime(value: number) {
   if (!Number.isFinite(value) || value <= 0) return "0:00";
 
@@ -92,6 +114,7 @@ export function RecordingCoursePlayer({
     lessons.find((lesson) => lesson.id === initialLessonId) ?? lessons[0];
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const iosFullscreenVideoRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<HTMLElement>(null);
   const pendingSeekRef = useRef<number | null>(null);
   const wantsPlaybackRef = useRef(false);
@@ -113,6 +136,7 @@ export function RecordingCoursePlayer({
   const [errorMessage, setErrorMessage] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFallbackFullscreen, setIsFallbackFullscreen] = useState(false);
+  const [isIOSVideoFullscreen, setIsIOSVideoFullscreen] = useState(false);
   const [openSection, setOpenSection] = useState<string | null>(
     () => firstLesson?.section || "الدروس"
   );
@@ -177,7 +201,11 @@ export function RecordingCoursePlayer({
   const volumeStyle = {
     "--range-progress": `${(isMuted ? 0 : volume) * 100}%`,
   } as CSSProperties;
-  const isPlayerFullscreen = isFullscreen || isFallbackFullscreen;
+  const fullscreenVideoUrl = getFullscreenVideoUrl(
+    selectedLesson?.audioUrl
+  );
+  const isPlayerFullscreen =
+    isFullscreen || isFallbackFullscreen || isIOSVideoFullscreen;
 
   const clearErrorHideTimer = useCallback(() => {
     if (errorHideTimerRef.current === null) return;
@@ -673,7 +701,136 @@ export function RecordingCoursePlayer({
     setPlaybackRate(nextRate);
   }
 
+  useEffect(() => {
+    const video =
+      iosFullscreenVideoRef.current as IOSFullscreenVideoElement | null;
+
+    if (!video) return;
+
+    function handleBeginFullscreen() {
+      setIsIOSVideoFullscreen(true);
+    }
+
+    function handleEndFullscreen() {
+      const audio = audioRef.current;
+      const shouldResume = !video!.paused;
+      const nextTime = Number.isFinite(video!.currentTime)
+        ? video!.currentTime
+        : currentTime;
+
+      video!.pause();
+      setIsIOSVideoFullscreen(false);
+      setCurrentTime(nextTime);
+
+      if (!audio) return;
+
+      audio.currentTime = nextTime;
+      audio.playbackRate = playbackRate;
+      audio.volume = volume;
+      audio.muted = isMuted;
+
+      wantsPlaybackRef.current = shouldResume;
+
+      if (shouldResume) {
+        void playAudio();
+      } else {
+        setIsPlaying(false);
+        setIsLoading(false);
+        keepControlsVisible();
+      }
+    }
+
+    video.addEventListener(
+      "webkitbeginfullscreen",
+      handleBeginFullscreen
+    );
+    video.addEventListener(
+      "webkitendfullscreen",
+      handleEndFullscreen
+    );
+
+    return () => {
+      video.removeEventListener(
+        "webkitbeginfullscreen",
+        handleBeginFullscreen
+      );
+      video.removeEventListener(
+        "webkitendfullscreen",
+        handleEndFullscreen
+      );
+    };
+  }, [
+    currentTime,
+    isMuted,
+    keepControlsVisible,
+    playAudio,
+    playbackRate,
+    volume,
+  ]);
+
   async function toggleFullscreen() {
+    if (isIPhoneBrowser()) {
+      const video =
+        iosFullscreenVideoRef.current as IOSFullscreenVideoElement | null;
+      const audio = audioRef.current;
+
+      if (!video || !fullscreenVideoUrl) {
+        showErrorTemporarily("تعذر تجهيز ملء الشاشة");
+        return;
+      }
+
+      if (
+        video.readyState < HTMLMediaElement.HAVE_METADATA ||
+        video.webkitSupportsFullscreen === false
+      ) {
+        video.load();
+        showErrorTemporarily(
+          "جارٍ تجهيز ملء الشاشة، حاول مرة أخرى بعد لحظة"
+        );
+        return;
+      }
+
+      const enterFullscreen =
+        video.webkitEnterFullscreen ??
+        video.webkitEnterFullScreen;
+
+      if (!enterFullscreen) {
+        showErrorTemporarily("ملء الشاشة غير مدعوم على هذا الجهاز");
+        return;
+      }
+
+      const shouldContinuePlaying =
+        audio?.paused === false || isPlaying;
+
+      try {
+        const nextTime = audio?.currentTime ?? currentTime;
+
+        video.currentTime = nextTime;
+        video.playbackRate = playbackRate;
+        video.volume = volume;
+        video.muted = isMuted;
+
+        if (audio) {
+          wantsPlaybackRef.current = false;
+          audio.pause();
+        }
+
+        enterFullscreen.call(video);
+
+        if (shouldContinuePlaying) {
+          void video.play();
+        }
+      } catch (error) {
+        showErrorTemporarily("تعذر فتح ملء الشاشة");
+
+        if (process.env.NODE_ENV !== "production") {
+          console.error("iPhone video fullscreen failed", error);
+        }
+      }
+
+      return;
+    }
+
     if (isFallbackFullscreen) {
       setIsFallbackFullscreen(false);
       return;
@@ -813,6 +970,19 @@ export function RecordingCoursePlayer({
                   ].join(" "),
             ].join(" ")}
           >
+            {fullscreenVideoUrl ? (
+              <video
+                ref={iosFullscreenVideoRef}
+                src={fullscreenVideoUrl}
+                preload="metadata"
+                playsInline
+                controls
+                tabIndex={-1}
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+              />
+            ) : null}
+
             {coverImage ? (
               <Image
                 key={`${selectedLesson.id}-cover`}

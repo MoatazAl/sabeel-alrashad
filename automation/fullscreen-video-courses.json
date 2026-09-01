@@ -1,0 +1,66 @@
+{
+  "r2_remote": "sabeel-r2",
+  "r2_bucket": "sabeel-alrashad-media",
+  "courses": {
+    "sahih-al-bukhari": {
+      "r2_prefix": "asaad-al-zaatari/sahih-al-bukhari",
+      "poster_dir": "public/images/courses/sahih-al-bukhari",
+      "start": 1,
+      "backfill_end": 153
+    },
+    "al-fatwa-al-tadmuriyyah": {
+      "r2_prefix": "asaad-al-zaatari/al-fatwa-al-tadmuriyyah",
+      "poster_dir": "public/images/courses/tadmuriyyah",
+      "start": 1,
+      "backfill_end": 19
+    },
+    "nukhbat-al-fikar": {
+      "r2_prefix": "asaad-al-zaatari/nukhbat-al-fikar",
+      "poster_dir": "public/images/courses/nukhbat-al-fikar",
+      "start": 1,
+      "backfill_end": 12
+    },
+    "kashf-al-shubuhat": {
+      "r2_prefix": "asaad-al-zaatari/kashf-al-shubuhat",
+      "poster_dir": "public/images/courses/kashf-al-shubuhat",
+      "start": 1,
+      "backfill_end": 7
+    },
+    "al-waraqat": {
+      "r2_prefix": "asaad-al-zaatari/al-waraqat",
+      "poster_dir": "public/images/courses/al-waraqat",
+      "start": 1,
+      "backfill_end": 12
+    },
+    "mukhtasar-al-seerah": {
+      "r2_prefix": "asaad-al-zaatari/mukhtasar-al-seerah",
+      "poster_dir": "public/images/courses/mukhtasar-al-seerah",
+      "start": 1,
+      "backfill_end": 6
+    },
+    "sharh-al-sunnah-al-barbahari": {
+      "r2_prefix": "saad-al-zaatari/sharh-al-sunnah-al-barbahari",
+      "poster_dir": "public/images/courses/sharh-al-sunnah-al-barbahari",
+      "start": 1,
+      "backfill_end": 39
+    },
+    "umdat-al-ahkam-kitab-al-taharah": {
+      "r2_prefix": "saad-al-zaatari/umdat-al-ahkam-kitab-al-taharah",
+      "poster_dir": "public/images/courses/umdat-al-ahkam-kitab-al-taharah",
+      "start": 1,
+      "backfill_end": 16
+    },
+    "umdat-al-ahkam-kitab-al-salah": {
+      "r2_prefix": "saad-al-zaatari/umdat-al-ahkam-kitab-al-salah",
+      "poster_dir": "public/images/courses/umdat-al-ahkam-kitab-al-salah",
+      "start": 1,
+      "backfill_end": 34
+    },
+    "raed-buyu": {
+      "r2_prefix": "raed-al-mahdawi/al-buyu-min-bulugh-al-maram",
+      "poster_dir": "public/images/courses/al-buyu-min-bulugh-al-maram",
+      "start": 13,
+      "backfill_end": 16
+    }
+  }
+}
