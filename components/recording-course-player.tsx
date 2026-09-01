@@ -113,12 +113,14 @@ export function RecordingCoursePlayer({
   const firstLesson =
     lessons.find((lesson) => lesson.id === initialLessonId) ?? lessons[0];
 
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const iosFullscreenVideoRef = useRef<HTMLVideoElement>(null);
+  const mediaRef = useRef<HTMLVideoElement>(null);
   const playerRef = useRef<HTMLElement>(null);
   const pendingSeekRef = useRef<number | null>(null);
   const wantsPlaybackRef = useRef(false);
   const sourceGenerationRef = useRef(0);
+  const iosResumeAfterFullscreenRef = useRef(false);
+  const iosPauseIntentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const iosResumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controlsHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const errorHideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controlsInteractionActiveRef = useRef(false);
@@ -243,7 +245,7 @@ export function RecordingCoursePlayer({
         activeElement.matches(":focus-visible"));
 
     if (
-      audioRef.current?.paused !== false ||
+      mediaRef.current?.paused !== false ||
       controlsInteractionActiveRef.current ||
       hasFocusedControl
     ) {
@@ -259,7 +261,7 @@ export function RecordingCoursePlayer({
           currentActiveElement.matches(":focus-visible"));
 
       if (
-        audioRef.current?.paused !== false ||
+        mediaRef.current?.paused !== false ||
         controlsInteractionActiveRef.current ||
         stillHasFocusedControl
       ) {
@@ -355,13 +357,13 @@ export function RecordingCoursePlayer({
   }, []);
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.playbackRate = playbackRate;
+    if (mediaRef.current) {
+      mediaRef.current.playbackRate = playbackRate;
     }
   }, [playbackRate]);
 
   useEffect(() => {
-    const audio = audioRef.current;
+    const audio = mediaRef.current;
 
     return () => {
       sourceGenerationRef.current += 1;
@@ -372,7 +374,7 @@ export function RecordingCoursePlayer({
   }, [clearControlsHideTimer, clearErrorHideTimer]);
 
   const playAudio = useCallback(async () => {
-    const audio = audioRef.current;
+    const audio = mediaRef.current;
     if (!audio) return;
     const sourceGeneration = sourceGenerationRef.current;
 
@@ -387,9 +389,20 @@ export function RecordingCoursePlayer({
       setArePlayerControlsVisible(true);
       scheduleControlsHide();
     } catch (error) {
-      const wasSuperseded = sourceGeneration !== sourceGenerationRef.current;
-      const wasAborted = error instanceof DOMException && error.name === "AbortError";
-      if (wasSuperseded || wasAborted) return;
+      const wasSuperseded =
+        sourceGeneration !== sourceGenerationRef.current;
+      const wasAborted =
+        error instanceof DOMException && error.name === "AbortError";
+
+      if (wasSuperseded) return;
+
+      if (wasAborted) {
+        wantsPlaybackRef.current = false;
+        setIsPlaying(false);
+        setIsLoading(false);
+        keepControlsVisible();
+        return;
+      }
 
       wantsPlaybackRef.current = false;
       setIsPlaying(false);
@@ -411,7 +424,7 @@ export function RecordingCoursePlayer({
     startTime: number,
     shouldPlay: boolean
   ) {
-    const audio = audioRef.current;
+    const audio = mediaRef.current;
     if (!audio) return;
 
     sourceGenerationRef.current += 1;
@@ -420,9 +433,10 @@ export function RecordingCoursePlayer({
     pendingSeekRef.current = Math.max(0, startTime);
     setIsLoading(shouldPlay);
 
-    const nextSource = new URL(source, window.location.href).href;
+    const playableSource = getFullscreenVideoUrl(source);
+    const nextSource = new URL(playableSource, window.location.href).href;
     if (audio.src !== nextSource || audio.error) {
-      audio.src = source;
+      audio.src = playableSource;
       audio.load();
     } else if (audio.readyState >= HTMLMediaElement.HAVE_METADATA) {
       audio.currentTime = pendingSeekRef.current;
@@ -434,7 +448,7 @@ export function RecordingCoursePlayer({
   }
 
   useEffect(() => {
-    const audio = audioRef.current;
+    const audio = mediaRef.current;
     if (!audio) return;
     const media = audio;
 
@@ -530,15 +544,16 @@ export function RecordingCoursePlayer({
   ]);
 
   useEffect(() => {
-    const audio = audioRef.current;
+    const audio = mediaRef.current;
     const source = selectedLesson?.audioUrl;
     if (!audio || !source) return;
 
-    const nextSource = new URL(source, window.location.href).href;
+    const playableSource = getFullscreenVideoUrl(source);
+    const nextSource = new URL(playableSource, window.location.href).href;
     if (audio.src === nextSource) return;
 
     pendingSeekRef.current = Math.max(0, selectedLesson.startAt ?? 0);
-    audio.src = source;
+    audio.src = playableSource;
     audio.load();
   }, [selectedLesson?.audioUrl, selectedLesson?.startAt]);
 
@@ -614,7 +629,7 @@ export function RecordingCoursePlayer({
   }
 
   function togglePlayback() {
-    const audio = audioRef.current;
+    const audio = mediaRef.current;
     if (!audio || !selectedLesson?.audioUrl) return;
 
     setShowsMainCourseCover(false);
@@ -642,7 +657,7 @@ export function RecordingCoursePlayer({
   }
 
   function seekTo(targetTime: number) {
-    const audio = audioRef.current;
+    const audio = mediaRef.current;
     if (!audio || !Number.isFinite(targetTime)) return;
 
     const clampedTime =
@@ -667,7 +682,7 @@ export function RecordingCoursePlayer({
   }
 
   function toggleMute() {
-    const audio = audioRef.current;
+    const audio = mediaRef.current;
     const nextMuted = !isMuted;
 
     if (audio) audio.muted = nextMuted;
@@ -675,7 +690,7 @@ export function RecordingCoursePlayer({
   }
 
   function handleVolumeChange(value: string) {
-    const audio = audioRef.current;
+    const audio = mediaRef.current;
     const nextVolume = Math.min(1, Math.max(0, Number(value)));
     if (!Number.isFinite(nextVolume)) return;
 
@@ -694,8 +709,8 @@ export function RecordingCoursePlayer({
     const nextRate = Number(value);
     if (!Number.isFinite(nextRate)) return;
 
-    if (audioRef.current) {
-      audioRef.current.playbackRate = nextRate;
+    if (mediaRef.current) {
+      mediaRef.current.playbackRate = nextRate;
     }
 
     setPlaybackRate(nextRate);
@@ -703,41 +718,152 @@ export function RecordingCoursePlayer({
 
   useEffect(() => {
     const video =
-      iosFullscreenVideoRef.current as IOSFullscreenVideoElement | null;
+      mediaRef.current as IOSFullscreenVideoElement | null;
 
     if (!video) return;
 
+    function clearPauseIntentTimer() {
+      if (iosPauseIntentTimerRef.current === null) return;
+
+      clearTimeout(iosPauseIntentTimerRef.current);
+      iosPauseIntentTimerRef.current = null;
+    }
+
+    function clearResumeTimer() {
+      if (iosResumeTimerRef.current === null) return;
+
+      clearTimeout(iosResumeTimerRef.current);
+      iosResumeTimerRef.current = null;
+    }
+
     function handleBeginFullscreen() {
+      clearPauseIntentTimer();
+      clearResumeTimer();
+
+      iosResumeAfterFullscreenRef.current =
+        !video!.paused && !video!.ended;
+
       setIsIOSVideoFullscreen(true);
     }
 
+    function handleNativePlay() {
+      if (!video!.webkitDisplayingFullscreen) return;
+
+      clearPauseIntentTimer();
+      iosResumeAfterFullscreenRef.current = true;
+    }
+
+    function handleNativePause() {
+      if (!video!.webkitDisplayingFullscreen) return;
+
+      clearPauseIntentTimer();
+
+      /*
+       * Native iOS fullscreen also fires pause while it is
+       * beginning the exit animation.
+       *
+       * Do not immediately treat that pause as intentional.
+       * If the video remains paused inside fullscreen for a
+       * while, then it really was a user pause.
+       */
+      iosPauseIntentTimerRef.current = setTimeout(() => {
+        if (
+          video!.webkitDisplayingFullscreen &&
+          video!.paused
+        ) {
+          iosResumeAfterFullscreenRef.current = false;
+        }
+
+        iosPauseIntentTimerRef.current = null;
+      }, 900);
+    }
+
     function handleEndFullscreen() {
-      const audio = audioRef.current;
-      const shouldResume = !video!.paused;
-      const nextTime = Number.isFinite(video!.currentTime)
-        ? video!.currentTime
-        : currentTime;
+      clearPauseIntentTimer();
+      clearResumeTimer();
 
-      video!.pause();
+      const shouldResume =
+        iosResumeAfterFullscreenRef.current;
+
       setIsIOSVideoFullscreen(false);
-      setCurrentTime(nextTime);
+      setCurrentTime(video!.currentTime);
+      setIsLoading(false);
+      keepControlsVisible();
 
-      if (!audio) return;
-
-      audio.currentTime = nextTime;
-      audio.playbackRate = playbackRate;
-      audio.volume = volume;
-      audio.muted = isMuted;
-
-      wantsPlaybackRef.current = shouldResume;
-
-      if (shouldResume) {
-        void playAudio();
-      } else {
+      if (!shouldResume || video!.ended) {
+        wantsPlaybackRef.current = false;
         setIsPlaying(false);
-        setIsLoading(false);
-        keepControlsVisible();
+        return;
       }
+
+      /*
+       * Do NOT call play() immediately here.
+       *
+       * iOS can still be completing the native fullscreen
+       * dismissal and can issue its automatic pause AFTER
+       * webkitendfullscreen.
+       */
+      wantsPlaybackRef.current = true;
+      setIsPlaying(false);
+
+      function attemptResume(finalAttempt: boolean) {
+        if (
+          !iosResumeAfterFullscreenRef.current ||
+          video!.ended
+        ) {
+          return;
+        }
+
+        if (!video!.paused) {
+          setIsPlaying(true);
+          setIsLoading(false);
+          return;
+        }
+
+        void video!.play()
+          .then(() => {
+            setIsPlaying(true);
+            setIsLoading(false);
+
+            /*
+             * Safari may still apply its exit pause shortly
+             * after play() resolves, so check once more.
+             */
+            if (!finalAttempt) {
+              iosResumeTimerRef.current = setTimeout(() => {
+                attemptResume(true);
+              }, 650);
+            }
+          })
+          .catch((error) => {
+            if (!finalAttempt) {
+              iosResumeTimerRef.current = setTimeout(() => {
+                attemptResume(true);
+              }, 650);
+              return;
+            }
+
+            wantsPlaybackRef.current = false;
+            setIsPlaying(false);
+            setIsLoading(false);
+            keepControlsVisible();
+
+            if (process.env.NODE_ENV !== "production") {
+              console.warn(
+                "Could not resume after iPhone fullscreen exit",
+                error
+              );
+            }
+          });
+      }
+
+      /*
+       * Native iPhone fullscreen dismissal animation needs
+       * time to finish before inline playback is reliable.
+       */
+      iosResumeTimerRef.current = setTimeout(() => {
+        attemptResume(false);
+      }, 550);
     }
 
     video.addEventListener(
@@ -748,8 +874,13 @@ export function RecordingCoursePlayer({
       "webkitendfullscreen",
       handleEndFullscreen
     );
+    video.addEventListener("play", handleNativePlay);
+    video.addEventListener("pause", handleNativePause);
 
     return () => {
+      clearPauseIntentTimer();
+      clearResumeTimer();
+
       video.removeEventListener(
         "webkitbeginfullscreen",
         handleBeginFullscreen
@@ -758,21 +889,15 @@ export function RecordingCoursePlayer({
         "webkitendfullscreen",
         handleEndFullscreen
       );
+      video.removeEventListener("play", handleNativePlay);
+      video.removeEventListener("pause", handleNativePause);
     };
-  }, [
-    currentTime,
-    isMuted,
-    keepControlsVisible,
-    playAudio,
-    playbackRate,
-    volume,
-  ]);
+  }, [keepControlsVisible]);
 
   async function toggleFullscreen() {
     if (isIPhoneBrowser()) {
       const video =
-        iosFullscreenVideoRef.current as IOSFullscreenVideoElement | null;
-      const audio = audioRef.current;
+        mediaRef.current as IOSFullscreenVideoElement | null;
 
       if (!video || !fullscreenVideoUrl) {
         showErrorTemporarily("تعذر تجهيز ملء الشاشة");
@@ -799,27 +924,8 @@ export function RecordingCoursePlayer({
         return;
       }
 
-      const shouldContinuePlaying =
-        audio?.paused === false || isPlaying;
-
       try {
-        const nextTime = audio?.currentTime ?? currentTime;
-
-        video.currentTime = nextTime;
-        video.playbackRate = playbackRate;
-        video.volume = volume;
-        video.muted = isMuted;
-
-        if (audio) {
-          wantsPlaybackRef.current = false;
-          audio.pause();
-        }
-
         enterFullscreen.call(video);
-
-        if (shouldContinuePlaying) {
-          void video.play();
-        }
       } catch (error) {
         showErrorTemporarily("تعذر فتح ملء الشاشة");
 
@@ -972,8 +1078,7 @@ export function RecordingCoursePlayer({
           >
             {fullscreenVideoUrl ? (
               <video
-                ref={iosFullscreenVideoRef}
-                src={fullscreenVideoUrl}
+                ref={mediaRef}
                 preload="metadata"
                 playsInline
                 controls
@@ -1413,7 +1518,6 @@ export function RecordingCoursePlayer({
         ) : null}
       </div>
 
-      <audio ref={audioRef} preload="metadata" />
     </div>
   );
 }

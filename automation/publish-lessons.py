@@ -268,12 +268,25 @@ def publish(config, course_key: str, lesson_number: int, dry_run: bool) -> None:
     extension = parsed["extension"]
     file_number = str(lesson_number).zfill(3)
     source_path = f"{drive_path}/{source_name}"
-    r2_key = f'{course["r2_prefix"]}/{file_number}{extension}'
-    r2_path = f'{config["r2_remote"]}:{config["r2_bucket"]}/{r2_key}'
-    public_url = f'{config["public_media_base_url"]}/{r2_key}'
+    r2_audio_key = f'{course["r2_prefix"]}/{file_number}{extension}'
+    r2_audio_path = (
+        f'{config["r2_remote"]}:{config["r2_bucket"]}/{r2_audio_key}'
+    )
+    audio_public_url = (
+        f'{config["public_media_base_url"]}/{r2_audio_key}'
+    )
+
+    r2_mp4_key = f'{course["r2_prefix"]}/{file_number}.mp4'
+    r2_mp4_path = (
+        f'{config["r2_remote"]}:{config["r2_bucket"]}/{r2_mp4_key}'
+    )
+    mp4_public_url = (
+        f'{config["public_media_base_url"]}/{r2_mp4_key}'
+    )
+
     poster_path = REPO / course["poster_dir"] / f"{file_number}.png"
 
-    existing_r2 = remote_stat(r2_path)
+    existing_r2 = remote_stat(r2_audio_path)
     reuse_existing_r2 = existing_r2 is not None
 
     if reuse_existing_r2:
@@ -288,7 +301,7 @@ def publish(config, course_key: str, lesson_number: int, dry_run: bool) -> None:
             raise PublishError(
                 "R2 object already exists but its size does not match "
                 f"the Drive source: Drive={source_size}, "
-                f"R2={r2_size}, path={r2_path}"
+                f"R2={r2_size}, path={r2_audio_path}"
             )
 
     section = None
@@ -326,8 +339,9 @@ def publish(config, course_key: str, lesson_number: int, dry_run: bool) -> None:
         print(f"Section change:    {plan}")
     if current_count is not None:
         print(f"Lesson count:      {current_count} -> {lesson_number}")
-    print(f"R2 destination:    {r2_path}")
-    print(f"Public URL:        {public_url}")
+    print(f"Temporary audio:   {r2_audio_path}")
+    print(f"Final MP4:         {r2_mp4_path}")
+    print(f"Public URL:        {mp4_public_url}")
     print(f"Poster:            {poster_path.relative_to(REPO)}")
     print(
         "R2 status:         "
@@ -350,12 +364,14 @@ def publish(config, course_key: str, lesson_number: int, dry_run: bool) -> None:
         )
     else:
         run([
-            "rclone", "copyto", source_path, r2_path,
+            "rclone", "copyto", source_path, r2_audio_path,
             "--s3-no-check-bucket", "--progress",
         ], show=True)
 
-    if not remote_stat(r2_path):
-        raise PublishError("R2 verification failed after upload")
+    if not remote_stat(r2_audio_path):
+        raise PublishError(
+            "Temporary R2 audio verification failed after upload"
+        )
 
     if course["kind"] == "generated-sections":
         update_sections(REPO / course["sections_file"], lesson_number, section)
@@ -370,7 +386,7 @@ def publish(config, course_key: str, lesson_number: int, dry_run: bool) -> None:
                 f"{drive_path}/{drive_poster.get('Name')}",
                 str(poster_path), "--progress",
             ], show=True)
-        update_library(course, lesson_number, public_url, poster_url)
+        update_library(course, lesson_number, mp4_public_url, poster_url)
 
     # Build the iPhone-native fullscreen video for every new audio lesson.
     run(
@@ -386,12 +402,41 @@ def publish(config, course_key: str, lesson_number: int, dry_run: bool) -> None:
         show=True,
     )
 
+    # The MP4 is now the permanent production media object.
+    if not remote_stat(r2_mp4_path):
+        raise PublishError(
+            f"MP4 verification failed after conversion: {r2_mp4_path}"
+        )
+
+    response = run(
+        ["curl", "-fsSI", mp4_public_url],
+        check=False,
+    )
+    if response.returncode:
+        raise PublishError(
+            f"Public MP4 URL failed: {mp4_public_url}"
+        )
+
+    # Once the MP4 is safely present and publicly reachable,
+    # remove the temporary duplicate audio from R2.
+    run(
+        [
+            "rclone",
+            "deletefile",
+            r2_audio_path,
+            "--s3-no-check-bucket",
+        ],
+        show=True,
+    )
+
+    if remote_stat(r2_audio_path):
+        raise PublishError(
+            f"Temporary R2 audio still exists after deletion: "
+            f"{r2_audio_path}"
+        )
+
     run(["npm", "run", "typecheck"], show=True)
     run(["npm", "run", "build"], show=True)
-
-    response = run(["curl", "-fsSI", public_url], check=False)
-    if response.returncode:
-        raise PublishError(f"Public media URL failed: {public_url}")
 
     state = read_json(STATE, {"published": []})
     state.setdefault("published", []).append({
@@ -399,7 +444,7 @@ def publish(config, course_key: str, lesson_number: int, dry_run: bool) -> None:
         "course": course_key,
         "lessonNumber": lesson_number,
         "sourceFilename": source_name,
-        "r2ObjectKey": r2_key,
+        "r2ObjectKey": r2_mp4_key,
         "publishedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
         "status": "published",
     })
