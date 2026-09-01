@@ -272,10 +272,6 @@ def publish(config, course_key: str, lesson_number: int, dry_run: bool) -> None:
     r2_audio_path = (
         f'{config["r2_remote"]}:{config["r2_bucket"]}/{r2_audio_key}'
     )
-    audio_public_url = (
-        f'{config["public_media_base_url"]}/{r2_audio_key}'
-    )
-
     r2_mp4_key = f'{course["r2_prefix"]}/{file_number}.mp4'
     r2_mp4_path = (
         f'{config["r2_remote"]}:{config["r2_bucket"]}/{r2_mp4_key}'
@@ -417,7 +413,39 @@ def publish(config, course_key: str, lesson_number: int, dry_run: bool) -> None:
             f"Public MP4 URL failed: {mp4_public_url}"
         )
 
-    # Once the MP4 is safely present and publicly reachable,
+    probe = run(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-show_entries",
+            "stream=codec_type",
+            "-of",
+            "json",
+            mp4_public_url,
+        ],
+        check=False,
+    )
+
+    if probe.returncode:
+        raise PublishError(
+            f"Could not probe permanent MP4: {mp4_public_url}"
+        )
+
+    probe_data = json.loads(probe.stdout or "{}")
+    stream_types = {
+        stream.get("codec_type")
+        for stream in probe_data.get("streams", [])
+    }
+
+    if "video" not in stream_types or "audio" not in stream_types:
+        raise PublishError(
+            "Permanent MP4 is missing audio or video: "
+            f"{mp4_public_url}"
+        )
+
+    # Once the MP4 is safely present, publicly reachable,
+    # and contains both streams,
     # remove the temporary duplicate audio from R2.
     run(
         [
